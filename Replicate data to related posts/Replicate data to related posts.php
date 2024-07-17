@@ -1,3 +1,4 @@
+
 <?php
 add_action('save_post', 'mk_update_related_posts', 10, 3);
 
