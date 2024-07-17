@@ -1,5 +1,7 @@
 
 <?php
+$version = '0.0.3';
+
 add_action('save_post', 'mk_update_related_posts', 10, 3);
 
 function mk_update_related_posts($post_id, $post, $update) {
@@ -100,7 +102,4 @@ function mk_update_related_posts($post_id, $post, $update) {
     }
 	// Update the blocco_mofifiche field
     //update_post_meta($post_id, 'blocco_modifiche', 'true');
-	
-	
 }
-
