@@ -1,6 +1,6 @@
 
 <?php
-$version = '0.0.3';
+$version = "<!#FV> 0.0.1 </#FV>";
 
 
 add_action('save_post', 'mk_update_related_posts', 10, 3);
