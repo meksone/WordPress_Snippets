@@ -5,7 +5,7 @@
  * 
  */ 
 
- $version = "<!#FV> 0.0.4 </#FV>";
+ $version = "<!#FV> 0.0.5 </#FV>";
 remove_action('welcome_panel', 'wp_welcome_panel'); // remove the welcome panel - doesn't work from 6.0 onward...
 
 add_action( 'wp_dashboard_setup', 'mk_rm_meta_boxes' );
