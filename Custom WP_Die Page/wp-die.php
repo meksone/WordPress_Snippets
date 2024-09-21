@@ -203,20 +203,29 @@ endif;
 		<div class="container">
 
 			<h1>Oops!</h1>
-
-<div class="warning">
-    <div class="mk-error-message"><?php echo $message; ?></div>
+			
+<div class="warning">    
+        
+    <div class="mk-error-message">
+   <?php if ( $r['response'] == 500 ) : ?>
+    <p>Error <?php echo $r['response']; ?> </p>
+   	
+    <?php else :?>
+    <?php echo $message; ?>
+    <?php endif; ?>
+    </div>
+    
+    
     
     <?php 
     if ( isset( $r['back_link'] ) && $r['back_link'] ) : ?>
-        <a href="javascript:history.back()">Please go back to the previous page</a>
+        <a href="javascript:history.back()">Torna alla pagina precedente</a>
     <?php else : ?>
         <!-- Add your else condition action here -->
-        <a href="javascript:history.back()">Please go back to the previous page</a>
+        <h2>Ask administrator to fix it :)</h2>
+        <!-- <a href="javascript:history.back()">Torna alla pagina precedente</a> -->
     <?php endif; ?>
-</div>
-
-			
+</div>	
 
 		</div>
 	</body>
