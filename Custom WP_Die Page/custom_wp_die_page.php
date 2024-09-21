@@ -1,5 +1,9 @@
 <?php
 $version = "<!#FV> 0.0.1 </#FV>";
+/**
+ * Create a custom WP_Die() page
+ * Remember to point to theme/site assets in wp-die.php 
+ */
 
 // custom die handler
 function wpmu_get_custom_die_handler() {
