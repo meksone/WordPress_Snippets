@@ -1,5 +1,5 @@
 <?php
-$version = "<!#FV> 0.0.3 </#FV>";
+$version = "<!#FV> 0.0.4 </#FV>";
 
 /* reference https://ilikekillnerds.com/2021/09/how-to-remove-wordpress-menu-items-including-those-created-by-plugins/ 
  * roles https://wordpress.org/documentation/article/roles-and-capabilities/
@@ -53,7 +53,7 @@ function mk_post_remove_all() {
 	/* Elementor */
 	if(false){
 	remove_menu_page('elementor');                       								// Elementor - Main
-	remove_menu_page('edit.php?post_type=elementor_library');                       	// Elementor Template Library
+	remove_menu_page('edit.php?post_type=elementor_library');                       	// Elementor - Template Library
 	remove_submenu_page('elementor', 'elementor-license');                          	// Elementor - License
 	remove_submenu_page('elementor', 'elementor-apps');                             	// Elementor - Apps
 	remove_submenu_page('elementor', 'elementor-role-manager');                     	// Elementor - Role manager
@@ -77,7 +77,7 @@ function mk_post_remove_all() {
 	remove_submenu_page('loginpress-settings', 'loginpress-import-export');         	// LoginPress - Import/Export
 	remove_submenu_page('loginpress-settings', 'loginpress-help');                  	// LoginPress - Help
 	remove_submenu_page('loginpress-settings', 'loginpress-addons');                	// LoginPress - Addons
-	remove_submenu_page('themes.php', 'abw');            								// Loginpress submenu in Themes
+	remove_submenu_page('themes.php', 'abw');            								// LoginPress - submenu in Themes
 	};
 	
 	/* ACF Pro */
@@ -124,7 +124,12 @@ function mk_post_remove_all() {
 	if(false){
 	remove_submenu_page('options-general.php', 'codepress-admin-columns');				// Options - Admin Columns Pro
 	};	
-		
+	
+	/* Code Snippets */
+	if(true){
+	//remove_menu_page('snippets');    													// Code Snippets - Main
+	remove_submenu_page('snippets', 'code-snippets-welcome');							// Code Snippets - XXX
+	};	
 		
 
 	/* XXX */
