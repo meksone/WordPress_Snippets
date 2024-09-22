@@ -1,6 +1,5 @@
 <?php
-
-$version = "<!#FV> 0.0.1 </#FV>";
+$version = "<!#FV> 0.0.3 </#FV>";
 
 /* Resize Gutenberg sidebar
  * reference https://www.toastplugins.co.uk/changing-the-width-of-the-wordpress-gutenberg-editor/
@@ -8,19 +7,57 @@ $version = "<!#FV> 0.0.1 </#FV>";
  * */
 
 
-function toast_enqueue_jquery_ui(){
+/*function toast_enqueue_jquery_ui(){
 	wp_enqueue_script( 'jquery-ui-resizable');
 }
+
 add_action('admin_enqueue_scripts', 'toast_enqueue_jquery_ui');
+*/
+
+
+function execute_on_post_edit_screen($post_types) {
+    global $typenow;
+
+    // If no post types are specified, execute the function
+    if (!$post_types) {
+        
+		add_action('admin_head', 'toast_resizable_sidebar');	
+		
+        return;
+    }
+
+    // If post types are specified, check if the current post type is in the array
+    if (is_array($post_types) && in_array($typenow, $post_types)) {
+        
+		add_action('admin_head', 'toast_resizable_sidebar');
+		
+    }
+}
+
+function load_on_specific_screens() {
+    $screen = get_current_screen();
+
+    if ($screen->base == 'post') {
+        $post_types = array('post', 'page', 'film'); // Specify the post types here
+        execute_on_post_edit_screen($post_types);
+    }
+}
+
+add_action('current_screen', 'load_on_specific_screens');
+
 
 function toast_resizable_sidebar(){ ?>
 	<style>
-		.interface-interface-skeleton__sidebar .interface-complementary-area{width:100%!important;}
+		.interface-interface-skeleton__sidebar .interface-complementary-area {width:100%!important;} 
 		.edit-post-layout:not(.is-sidebar-opened) .interface-interface-skeleton__sidebar{display:unset;}
-		.is-sidebar-opened .interface-interface-skeleton__sidebar{width:300px;}
-
-		/*UI Styles*/
-	
+		.is-sidebar-opened .interface-interface-skeleton__sidebar{width:350px;}
+		
+		/* Disable Block Tab in sidebar */
+		button#tabs-0-edit-post\/block {
+		display: none;
+		}
+		
+		/* UI Styles */
 		.ui-dialog .ui-resizable-n {
 			height: 2px;
 			top: 0;
@@ -139,21 +176,14 @@ function toast_resizable_sidebar(){ ?>
 		}
 	</style>
 
-	/*<script>
-		jQuery(window).ready(function($){
-    		setTimeout(function(){
-        $('.interface-complementary-area__fill').resizable({
-                handles: 'w',
-                minWidth: 350,
-                maxWidth: 800
-            });
-    		}, 500)
-		});
-	</script>*/
 	<script>
-		jQuery(window).ready(function(){
+		jQuery(document).ready(function(){
+	
     		setTimeout(function(){
-        		jQuery('.interface-complementary-area__fill').width(localStorage.getItem('toast_sidebar_width'))
+				var customWidth = localStorage.getItem('toast_sidebar_width');
+	    		jQuery('.interface-complementary-area__fill').width( customWidth );
+				
+				console.log("sidebar width is: " + customWidth);
         		jQuery('.interface-complementary-area__fill').resizable({
             		handles: 'w',
             		resize: function(event, ui) {
@@ -161,8 +191,21 @@ function toast_resizable_sidebar(){ ?>
                 		localStorage.setItem('toast_sidebar_width', jQuery(this).width());
            				}
         		});
-    		}, 500)
+    		}, 600) // END TimeOut
+				/* Trigger after Gutenberg saves - listener */
+		wp.data.subscribe(function () {
+		  var isSavingPost = wp.data.select('core/editor').isSavingPost();
+		  var isAutosavingPost = wp.data.select('core/editor').isAutosavingPost();
+
+		  if (isSavingPost && !isAutosavingPost) {
+			console.log("Item Saved!");
+			jQuery('.interface-complementary-area__fill').width(localStorage.getItem('toast_sidebar_width'));
+			console.log("Sidebar restored!");
+
+		  }
+		}) // END listener
 		});
+		
 	</script>
 <?php }
-add_action('admin_head', 'toast_resizable_sidebar');
+//add_action('admin_head', 'toast_resizable_sidebar');
