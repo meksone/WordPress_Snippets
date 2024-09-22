@@ -1,16 +1,22 @@
 <?php
+$version = "<!#FV> 0.0.2 </#FV>";
 
-$version = "<!#FV> 0.0.1 </#FV>";
+/*
+ * Disable all Gutenberg blocks for certain post types
+ * define post to clean from all blocks in the postTypes array;
+ * all other post types have normal Gutenberg editor
+ * */
 
-// Disable all Gutenberg blocks for certain post types
-add_filter('allowed_block_types', 'my_allowed_block_types', 10, 2);
 
-function my_allowed_block_types($allowed_blocks, $post) {
+add_filter('allowed_block_types', 'mk_disable_all_blocks', 10, 2);
+
+function mk_disable_all_blocks($allowed_blocks, $post) {
     // Define the post types where Gutenberg blocks should be disabled
     $postTypes = array('film');
 
     // If the current post type is in the list, disable Gutenberg blocks
     if (in_array($post->post_type, $postTypes)) {
+		add_action( 'acf/input/admin_footer', 'mk_fix_post_content_height' );
         return array();
     }
 
@@ -19,8 +25,6 @@ function my_allowed_block_types($allowed_blocks, $post) {
 }
 
 // Fix the post content height
-add_action( 'acf/input/admin_footer', 'mk_fix_post_content_height' );
-
 function mk_fix_post_content_height(){
     // Define the CSS styles
     $styles = "
@@ -38,7 +42,6 @@ function mk_fix_post_content_height(){
         margin-top: 1px !important;
     }
     ";
-
-    // Print the styles
+    // Print the styles in the page
     echo "<style>$styles</style>";
 }
