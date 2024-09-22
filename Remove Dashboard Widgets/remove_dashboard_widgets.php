@@ -1,9 +1,4 @@
 <?php
-/**
- * Updated on 2024-06-29
- * Remove Dashboard Meta Boxes
- * 
- */ 
 
  $version = "<!#FV> 0.0.5 </#FV>";
 remove_action('welcome_panel', 'wp_welcome_panel'); // remove the welcome panel - doesn't work from 6.0 onward...

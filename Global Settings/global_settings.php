@@ -1,15 +1,21 @@
 <?php
-$version = "<!#FV> 0.0.1 </#FV>";
+$version = "<!#FV> 0.0.2 </#FV>";
 
 add_action('init', 'check_user_and_execute_functions');
 function check_user_and_execute_functions() {
     // Array of usernames to exclude
-    $usernames = array('bim-adm', 'bim-test');
+    $usernames = array('bim-adma', 'placeholder');
 	
 	// Options for the functions
 	$pluginsToDisable = [
     'admin-color-schemes/admin-color-schemes.php',
     'jamp-notes/jamp.php',
+	'advanced-custom-fields-pro/acf.php',
+	'code-snippets/code-snippets.php',
+	'disable-comments/disable-comments.php',
+	'wp-media-folder/wp-media-folder.php',
+	'redis-cache/redis-cache.php',
+	'dynamic-content-for-elementor/dynamic-content-for-elementor.php',
 	];
 
     // Check if user is logged in
@@ -46,3 +52,4 @@ function update_user_option_admin_color( $color_scheme ) {
     $color_scheme = '80s-kid';
     return $color_scheme;
 }
+
