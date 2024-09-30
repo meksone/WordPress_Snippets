@@ -1,5 +1,6 @@
 <?php
 
+$snippet_name = "remove_menu_items";
 $version = "<!#FV> 0.0.7 </#FV>";
 
 $user_to_exclude = array('bim-adma');
