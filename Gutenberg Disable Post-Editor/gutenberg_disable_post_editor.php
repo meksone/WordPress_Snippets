@@ -1,5 +1,6 @@
 <?php
 
+$snippet_name = "gutenberg_disable_post_editor";
 $version = "<!#FV> 0.0.3 </#FV>";
 
 /*

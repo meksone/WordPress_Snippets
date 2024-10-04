@@ -1,4 +1,6 @@
 <?php
+
+$snippet_name = "global_settings";
 $version = "<!#FV> 0.0.2 </#FV>";
 
 add_action('init', 'check_user_and_execute_functions');

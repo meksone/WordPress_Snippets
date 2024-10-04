@@ -1,4 +1,6 @@
 <?php
+
+$snippet_name = "gutenberg_resize_sidebar";
 $version = "<!#FV> 0.0.3 </#FV>";
 
 /* Resize Gutenberg sidebar

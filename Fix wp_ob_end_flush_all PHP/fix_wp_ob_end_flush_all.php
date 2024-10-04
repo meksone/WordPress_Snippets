@@ -1,4 +1,6 @@
 <?php
+
+$snippet_name = "fix_wp_ob_end_flush_all";
 $version = "<!#FV> 0.0.1 </#FV>";
 
 /**

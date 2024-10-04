@@ -1,7 +1,8 @@
 
 <?php
-$version = "<!#FV> 0.0.1 </#FV>";
 
+$snippet_name = "crocoblock_replicate_data_to_related_posts";
+$version = "<!#FV> 0.0.1 </#FV>";
 
 add_action('save_post', 'mk_update_related_posts', 10, 3);
 

@@ -1,4 +1,6 @@
 <?php
+
+$snippet_name = "gutenberg_disable_welcome_message";
 $version = "<!#FV> 0.0.1 </#FV>";
 
 /**

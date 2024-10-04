@@ -2,6 +2,7 @@
 
 $snippet_name = "remove_dashboard_widgets";
 $version = "<!#FV> 0.0.6 </#FV>";
+
 remove_action('welcome_panel', 'wp_welcome_panel'); // remove the welcome panel - doesn't work from 6.0 onward...
 
 add_action( 'wp_dashboard_setup', 'mk_rm_meta_boxes' );

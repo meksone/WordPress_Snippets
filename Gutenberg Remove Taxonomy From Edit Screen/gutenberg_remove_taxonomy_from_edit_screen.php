@@ -1,11 +1,13 @@
 <?php
 
+$snippet_name = "gutenberg_remove_taxonomy_from_edit_screen";
 $version = "<!#FV> 0.0.1 </#FV>";
 
 function mk_remove_taxonomy_from_edit_screen()
 {
     // Get the current screen
     $screen = get_current_screen();
+    
 
     // Check if we're on the edit screen for the 'corsi' CPT
     if ('corsi' === $screen->post_type && 'post' === $screen->base) {

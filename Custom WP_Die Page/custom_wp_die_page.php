@@ -1,4 +1,6 @@
 <?php
+
+$snippet_name = "custom_wp_die_page";
 $version = "<!#FV> 0.0.1 </#FV>";
 /**
  * Create a custom WP_Die() page

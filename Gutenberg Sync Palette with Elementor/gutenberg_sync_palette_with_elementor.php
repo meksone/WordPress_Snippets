@@ -1,5 +1,6 @@
-
 <?php
+
+$snippet_name = "gutenberg_sync_palette_with_elementor";
 $version = "<!#FV> 0.0.1 </#FV>";
 
 /**
