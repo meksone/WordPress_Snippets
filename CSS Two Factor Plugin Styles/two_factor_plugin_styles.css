@@ -1,0 +1,55 @@
+<style>
+/* 
+* Two Factor Auth screen 
+* https://wordpress.org/plugins/two-factor/
+* Use LoginPress or normal CSS override
+*/
+
+div#login_error {
+    padding: 15px 25px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 15px 5px #0000002e;
+    background-color: #f6366a;
+}
+
+#login_error p {
+    color: #FFF !important;
+}
+
+div#login-message {
+    padding: 15px 25px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 15px 5px rgba(0, 0, 0, .1);
+    border-left: 0px;
+    font-size: 15px;
+}
+
+div#login li p {
+    color: #FFF;
+}
+
+button.button.button-secondary {
+    padding: 5px 15px;
+    font-size: 15px;
+    color: #fff;
+    background-color: #f6366a;
+    border: 0px;
+    box-shadow: 0px 0px 15px 5px #0000002e;
+}
+
+.backup-methods-wrap p,
+li,
+a {
+    color: #FFF !important;
+}
+
+#loginform p {
+    color: #FFF !important;
+}
+
+#loginform {
+    min-height: 165px;
+    font-size: 15px;
+}
+
+</style>
