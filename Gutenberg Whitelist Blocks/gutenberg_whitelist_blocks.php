@@ -1,4 +1,6 @@
 <?php
+
+$snippet_name = "gutenberg_whitelist_blocks";
 $version = "<!#FV> 0.0.1 </#FV>";
 
 /* Allow only some blocks
