@@ -15,24 +15,7 @@ $version = "<!#FV> 0.0.2 </#FV>";
 	?>
 	<style type="text/css">
 		
-	
-		
-		.acf-field p.description {
-		background-color: #EAEAEA;
-		padding: 5px;
-		border-radius: 6px;
-		}
-		
-		.acf-field.acf-field-group {
-		padding: 0px;
-		margin: 0px;
-	}
-		
-	/* Label Styling !!! */
-		.acf-field-group > .acf-label {
-		margin: 0 10px 10px;
-		}
-		
+
 	/* Hide label inside ACF group */
 		.mk-group-label-hide > .acf-label {
 		display: none;
@@ -46,8 +29,31 @@ $version = "<!#FV> 0.0.2 </#FV>";
 		border-radius: 6px;
 	}
 		.mk-group-highlight {
-			background-color: #fff7d3;
-			margin: 5px !important;
+		background-color: #fff7d3;
+		margin: 5px !important;
+		}
+
+		.mk-group-highlight.acf-field p.description {
+		background-color: #f5d771;
+		color: orangered;
+		/*padding: 5px;
+		border-radius: 6px;*/
+		}
+
+		.mk-field-highlight > .acf-label label {
+		padding: 5px 5px 5px 5px;
+		background-color: #f5d771!important;
+		color: orangered!important;
+		border-radius: 6px;
+	}
+		.mk-field-highlight {
+		/*background-color: #fff7d3;*/
+		margin: 5px !important;
+		}
+
+		.mk-field-highlight.acf-field p.description {
+		background-color: #f5d771;
+		color: orangered;
 		}
 	
 	/* Grey Background */	
@@ -56,6 +62,49 @@ $version = "<!#FV> 0.0.2 </#FV>";
 		border-radius: 8px;
 		}
 
+		
+		/* In evidenza background */
+		.mk-in-evidenza {
+		background-color: #FFF7D3;		
+		}
+			
+		#mk-in-evidenza.acf-field .acf-label label {
+		display: inline;
+		margin: 0 0 3px;
+		padding: 5px 5px 5px 5px;
+		background-color: #f5d771;
+		color: orangered;
+		border-radius: 6px;
+		}
+		
+		#mk-in-evidenza.acf-field p.description {
+		background-color: #f5d771;
+		color: orangered;
+		/*padding: 5px;
+		border-radius: 6px;*/
+		}
+		
+		/* Hide ACF element */
+		.mk-acf-hide {
+			display: none;
+		}
+	
+		/* Default ACF styling overrides */
+		.acf-field p.description {
+		background-color: #EAEAEA;
+		padding: 5px;
+		border-radius: 6px;
+		}
+		
+		.acf-field.acf-field-group {
+		padding: 0px;
+		margin: 0px;
+	}
+
+		.acf-field-group > .acf-label {
+		margin: 0 10px 10px;
+		}
+		
 		.acf-field .acf-label label {
 		display: inline;
 		margin: 0 0 3px;
@@ -73,7 +122,7 @@ $version = "<!#FV> 0.0.2 </#FV>";
 		border-radius: 6px!important;
 		}
 		
-			
+
 		/* table formatting */
 		td.acf-field.acf-field-text {
 		padding: 4px;
@@ -99,33 +148,6 @@ $version = "<!#FV> 0.0.2 </#FV>";
 			box-shadow: 0 0 13px -5px #00000080;
 		}
 		
-		
-		/* In evidenza background */
-		.mk-in-evidenza {
-		background-color: #FFF7D3;		
-		}
-			
-		#mk-in-evidenza.acf-field .acf-label label {
-		display: inline;
-		margin: 0 0 3px;
-		padding: 5px 5px 5px 5px;
-		background-color: #f5d771;
-		color: orangered;
-		border-radius: 6px;
-		}
-		
-		#mk-in-evidenza.acf-field p.description {
-		background-color: #f5d771;
-		color: orangered;
-		padding: 5px;
-		border-radius: 6px;
-		}
-		
-		/* Hide ACF element */
-		.mk-acf-hide {
-			display: none;
-		}
-	
 	</style>
 	<?php
 	}
