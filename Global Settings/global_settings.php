@@ -10,15 +10,19 @@ function check_user_and_execute_functions() {
 	
 	// Options for the functions
 	$pluginsToDisable = [
-    'admin-color-schemes/admin-color-schemes.php',
-    'jamp-notes/jamp.php',
-	'advanced-custom-fields-pro/acf.php',
-	'code-snippets/code-snippets.php',
-	'disable-comments/disable-comments.php',
-	'wp-media-folder/wp-media-folder.php',
-	'redis-cache/redis-cache.php',
-	'dynamic-content-for-elementor/dynamic-content-for-elementor.php',
-	];
+        'admin-color-schemes/admin-color-schemes.php',
+        'jamp-notes/jamp.php',
+        'advanced-custom-fields-pro/acf.php',
+        'advanced-custom-fields/acf.php',
+        'acf-extended/acf-extended.php',
+        'code-snippets/code-snippets.php',
+        'disable-comments/disable-comments.php',
+        'wp-media-folder/wp-media-folder.php',
+        'redis-cache/redis-cache.php',
+        'dynamic-content-for-elementor/dynamic-content-for-elementor.php',
+        'jsm-show-user-meta/jsm-show-user-meta.php',
+        'jsm-show-post-meta/jsm-show-post-meta.php',
+        ];
 
     // Check if user is logged in
     if ( is_user_logged_in() ) {
@@ -54,4 +58,3 @@ function update_user_option_admin_color( $color_scheme ) {
     $color_scheme = '80s-kid';
     return $color_scheme;
 }
-
