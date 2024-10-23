@@ -47,9 +47,9 @@ $version = "<!#FV> 0.0.2 </#FV>";
 		border-radius: 6px;
 	}
 		.mk-field-highlight {
-		/*background-color: #fff7d3;*/
+		/*background-color: #fff7d3;
 		margin: 5px !important;
-		}
+		}*/
 
 		.mk-field-highlight.acf-field p.description {
 		background-color: #f5d771;
