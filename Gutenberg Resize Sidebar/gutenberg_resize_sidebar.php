@@ -1,57 +1,51 @@
 <?php
-
 $snippet_name = "gutenberg_resize_sidebar";
 $version = "<!#FV> 0.0.4 </#FV>";
 
 /* Resize Gutenberg sidebar
  * reference https://www.toastplugins.co.uk/changing-the-width-of-the-wordpress-gutenberg-editor/
  * fixed, the original code doesn't work in WP 6.6.2
- * 
- * Remember to set CPT and custom image in CSS!
- * 
  * */
 
- function load_on_specific_screens() {
-    $screen = get_current_screen();
 
-    if ($screen->base == 'post') {
-        $post_types = array('post', 'page', 'faq', 'tip_card'); // Specify the post types here
-        execute_on_post_edit_screen($post_types);
-    }
+/*function toast_enqueue_jquery_ui(){
+	wp_enqueue_script( 'jquery-ui-resizable');
 }
 
-add_action('current_screen', 'load_on_specific_screens');
+add_action('admin_enqueue_scripts', 'toast_enqueue_jquery_ui');
+*/
+
 
 function execute_on_post_edit_screen($post_types) {
     global $typenow;
 
     // If no post types are specified, execute the function
     if (!$post_types) {
-        
 		add_action('admin_head', 'toast_resizable_sidebar');	
-		
         return;
     }
 
     // If post types are specified, check if the current post type is in the array
     if (is_array($post_types) && in_array($typenow, $post_types)) {
-        
 		add_action('admin_head', 'toast_resizable_sidebar');
-		
     }
 }
 
+function load_on_specific_screens() {
+    $screen = get_current_screen();
 
-/**
- * Summary of toast_resizable_sidebar
- * @return void
- * 
- * CSS Styles and script
- */
+    if ($screen->base == 'post') {
+        $post_types = array('post', 'page', 'film'); // Specify the post types here
+        execute_on_post_edit_screen($post_types);
+    }
+}
+
+add_action('current_screen', 'load_on_specific_screens');
+
+
 function toast_resizable_sidebar(){ ?>
 	<style>
-		
-		.interface-interface-skeleton__sidebar .interface-complementary-area, .interface-interface-skeleton__sidebar .interface-complementary-area__fill{width:100% !important;}
+.interface-interface-skeleton__sidebar .interface-complementary-area, .interface-interface-skeleton__sidebar .interface-complementary-area__fill{width:100% !important;}
 .edit-post-layout:not(.is-sidebar-opened) .interface-interface-skeleton__sidebar{display:none;}
 .edit-site-layout:not(.is-sidebar-opened) .interface-interface-skeleton__sidebar{display:none;}
 .is-sidebar-opened .interface-interface-skeleton__sidebar{width:40%;}
@@ -175,16 +169,50 @@ function toast_resizable_sidebar(){ ?>
 }
 
 .interface-interface-skeleton__sidebar.ui-resizable-resizing{position: relative !important;}
-.interface-interface-skeleton__sidebar.ui-resizable-resizing:after{content:'';width:100%;height:100%;position:absolute;top:0;left:0;background:url('/wp-content/uploads/2022/05/adoptabigcolor.svg') #ffffff;background-size:300px auto;background-position:center;background-repeat:no-repeat;}
+.interface-interface-skeleton__sidebar.ui-resizable-resizing:after{content:'';width:100%;height:100%;position:absolute;top:0;left:0;background:url('/wp-content/uploads/2024/09/bim-logo-blue.svg') #ffffff;background-size:300px auto;background-position:center;background-repeat:no-repeat;}
 		
 	</style>
+
+	<script>
+		/*
+		jQuery(document).ready(function(){
+	
+    		setTimeout(function(){
+				var customWidth = localStorage.getItem('toast_sidebar_width');
+	    		jQuery('.interface-complementary-area__fill').width( customWidth );
+				
+				console.log("sidebar width is: " + customWidth);
+        		jQuery('.interface-complementary-area__fill').resizable({
+            		handles: 'w',
+            		resize: function(event, ui) {
+                		jQuery(this).css({'left': 0});
+                		localStorage.setItem('toast_sidebar_width', jQuery(this).width());
+           				}
+        		});
+    		}, 600) // END TimeOut
+			*/
+				/* Trigger after Gutenberg saves - listener */
+		/*
+		wp.data.subscribe(function () {
+		  var isSavingPost = wp.data.select('core/editor').isSavingPost();
+		  var isAutosavingPost = wp.data.select('core/editor').isAutosavingPost();
+
+		  if (isSavingPost && !isAutosavingPost) {
+			console.log("Item Saved!");
+			jQuery('.interface-complementary-area__fill').width(localStorage.getItem('toast_sidebar_width'));
+			console.log("Sidebar restored!");
+
+		  }
+		}) // END listener
+		});
+		*/
+	</script>
 
 	<script>
 		jQuery(window).ready(function(){
     setInterval(function(){
         jQuery('.interface-interface-skeleton__sidebar').width(localStorage.getItem('toast_rs_personal_sidebar_width'))
 
-		//console.log("sidebar width is: " + customWidth);
         jQuery('.interface-interface-skeleton__sidebar').resizable({
             handles: 'w',
             resize: function(event, ui) {

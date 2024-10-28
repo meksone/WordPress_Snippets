@@ -1,7 +1,7 @@
 <?php
 
 $snippet_name = "gutenberg_disable_post_editor";
-$version = "<!#FV> 0.0.3 </#FV>";
+$version = "<!#FV> 0.0.4 </#FV>";
 
 /*
  * Disable all Gutenberg blocks for certain post types
@@ -14,14 +14,7 @@ add_filter('allowed_block_types', 'mk_disable_all_blocks', 10, 2);
 
 function mk_disable_all_blocks($allowed_blocks, $post) {
     // Define the post types where Gutenberg blocks should be disabled
-    $postTypes = array('corso-master', 'corsi');
-
-    // If the current post type is in the list, disable Gutenberg blocks
-    /*if (in_array($post->post_type, $postTypes)) {
-		add_action( 'acf/input/admin_footer', 'mk_fix_post_content_height' );
-        return array();
-    }
-    */
+    $postTypes = array('film');
 
     // If the current post type is in the list, disable Gutenberg blocks
     if (in_array($post->post_type, $postTypes)) {
@@ -51,10 +44,26 @@ function mk_fix_post_content_height(){
         height: unset!important;
     }
 	
-	/* hide add button */
+	/* Hide add button */
 	button#\:r1\: {
     display: none;
 	}
+	
+	/* Hide tools button */
+	button#\:r3\: {
+    display: none;
+	}
+	
+	/* Hide components button */
+	button#\:r9\: {
+    display: none;
+	}
+	
+	/* Hide block button in sidebar */
+	button#tabs-0-edit-post\/block {
+	display: none;
+	}
+		
     .editor-visual-editor.edit-post-visual-editor {
         max-height: 150px;
     }
