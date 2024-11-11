@@ -1,12 +1,12 @@
 <?php
 
 $snippet_name = "show_text_based_on_date";
-$version = "<!#FV> 0.0.1 </#FV>";
+$version = "<!#FV> 0.0.2 </#FV>";
 
-add_shortcode('date_date_display', 'date_date_display_function');
-function date_date_display_function($atts) {
+add_shortcode('date_display', 'date_display_function');
+function date_display_function($atts) {
     // Static array of Italian month names
-    $italian_months = array(
+    $italian_months = array(\
         1 => 'gennaio',
         2 => 'febbraio',
         3 => 'marzo',
@@ -38,7 +38,13 @@ function date_date_display_function($atts) {
         $month_num = (int)date('n', strtotime($custom_field_date));
 
         if ($custom_date_int > $today_date_int) {
-            return sprintf('<h2 class="elementor-heading-title">Dal %d %s al cinema</h2>', $day, $italian_months[$month_num]);
+			if ($day == 1 || $day == 8 || $day == 11 ) {
+				return sprintf('<h2 class="elementor-heading-title">Dall\'%d %s al cinema</h2>', $day, $italian_months[$month_num]);
+			}
+			else {
+				return sprintf('<h2 class="elementor-heading-title">Dal %d %s al cinema</h2>', $day, $italian_months[$month_num]);
+			}
+
         } elseif ($custom_date_int == $today_date_int) {
             return '<h2 class="elementor-heading-title">Da oggi al cinema</h2>';
         } else {
