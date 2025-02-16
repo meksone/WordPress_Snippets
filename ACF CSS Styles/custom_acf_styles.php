@@ -1,7 +1,7 @@
 <?php
 
 $snippet_name = "custom_acf_styles";
-$version = "<!#FV> 0.0.2 </#FV>";
+$version = "<!#FV> 0.0.3 </#FV>";
 
 /*
  * Custom ACF Styles
@@ -14,8 +14,16 @@ $version = "<!#FV> 0.0.2 </#FV>";
  function mk_acf_custom_styles() {
 	?>
 	<style type="text/css">
-		
-
+	
+	:root {	
+	--mk-acf-full-01: #f5d771;
+	--mk-acf-light-01: #fff7d3;
+	--mk-acf-grey-01: #FAFAFA;
+	--mk-acf-grey-02: #EAEAEA;
+	--mk-acf-grey-03: #bdbdbd;
+	--mk-acf-orangered: #ff4500;
+	}
+	
 	/* Hide label inside ACF group */
 		.mk-group-label-hide > .acf-label {
 		display: none;
@@ -24,62 +32,62 @@ $version = "<!#FV> 0.0.2 </#FV>";
 	/* Special Group Label */
 		.mk-group-highlight > .acf-label label {
 		padding: 5px 5px 5px 5px;
-		background-color: #f5d771!important;
-		color: orangered!important;
+		background-color: var(--mk-acf-full-01)!important;
+		color: var(--mk-acf-orangered)!important;
 		border-radius: 6px;
 	}
 		.mk-group-highlight {
-		background-color: #fff7d3;
+		background-color: var(--mk-acf-light-01);
 		margin: 5px !important;
 		}
 
 		.mk-group-highlight.acf-field p.description {
-		background-color: #f5d771;
-		color: orangered;
+		background-color: var(--mk-acf-full-01);
+		color: var(--mk-acf-orangered);
 		/*padding: 5px;
 		border-radius: 6px;*/
 		}
 
 		.mk-field-highlight > .acf-label label {
 		padding: 5px 5px 5px 5px;
-		background-color: #f5d771!important;
-		color: orangered!important;
+		background-color: var(--mk-acf-full-01)!important;
+		color: var(--mk-acf-orangered)!important;
 		border-radius: 6px;
 	}
 		.mk-field-highlight {
-		/*background-color: #fff7d3;
+		/*background-color: var(--mk-acf-light-01);
 		margin: 5px !important;
 		}*/
 
 		.mk-field-highlight.acf-field p.description {
-		background-color: #f5d771;
-		color: orangered;
+		background-color: var(--mk-acf-full-01);
+		color: var(--mk-acf-orangered);
 		}
 	
 	/* Grey Background */	
 		.mk-acf-backg-grey {
-		background-color: #FAFAFA;
+		background-color: var(--mk-acf-grey-01);
 		border-radius: 8px;
 		}
 
 		
 		/* In evidenza background */
 		.mk-in-evidenza {
-		background-color: #FFF7D3;		
+		background-color: var(--mk-acf-light-01);		
 		}
 			
 		#mk-in-evidenza.acf-field .acf-label label {
 		display: inline;
 		margin: 0 0 3px;
 		padding: 5px 5px 5px 5px;
-		background-color: #f5d771;
-		color: orangered;
+		background-color: var(--mk-acf-full-01);
+		color: var(--mk-acf-orangered);
 		border-radius: 6px;
 		}
 		
 		#mk-in-evidenza.acf-field p.description {
-		background-color: #f5d771;
-		color: orangered;
+		background-color: var(--mk-acf-full-01);
+		color: var(--mk-acf-orangered);
 		/*padding: 5px;
 		border-radius: 6px;*/
 		}
@@ -91,7 +99,7 @@ $version = "<!#FV> 0.0.2 </#FV>";
 	
 		/* Default ACF styling overrides */
 		.acf-field p.description {
-		background-color: #EAEAEA;
+		background-color: var(--mk-acf-grey-02);
 		padding: 5px;
 		border-radius: 6px;
 		}
@@ -109,7 +117,7 @@ $version = "<!#FV> 0.0.2 </#FV>";
 		display: inline;
 		margin: 0 0 3px;
 		padding: 5px 5px 5px 5px;
-		background-color: #EAEAEA;
+		background-color: var(--mk-acf-grey-02);
 		border-radius: 6px;
 		}	
 		
@@ -144,7 +152,7 @@ $version = "<!#FV> 0.0.2 </#FV>";
 		input[type=search], input[type=tel], input[type=text], 
 		input[type=time], input[type=url], input[type=week], select, textarea {
 			border-radius: 6px;
-			border: 1px solid #bdbdbd;
+			border: 1px solid var(--mk-acf-grey-03);
 			box-shadow: 0 0 13px -5px #00000080;
 		}
 		
