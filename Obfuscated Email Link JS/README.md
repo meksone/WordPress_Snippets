@@ -47,7 +47,8 @@ I want to  point out some little details that I want to correct in the near futu
 
 Please consider I'm not a professional developer; I'm an **IT professional for over two decades** who loves to create websites using **WordPress** and I have basic knownledge of programming languages and techniques and related security practices. If you plan to use this script please consider to personally review the code and do the necessary changes to accommodate to your case.
 
-⚠️**The script is offered "as-is" without any guarantee, use it at your own risk (sorry, I must say this, there's alot of bad people out there! 😅)**
+⚠️**The script is offered "as-is" without any guarantee, use it at your own risk! ⚠️**
+<br>**(sorry, I must say this, there's a lot of bad people out there! 😅)**
 
 ### 🤖AI Disclaimer
 
@@ -82,6 +83,9 @@ If you prefer, you can also save the javascript in a .js file, put it where you 
 ```html
 <script src="path/to/your/file.js" type="text/javascript"></script>
 ```
+
+The script auto loads itself (see the last lines of the code), and create an object called
+**emailLinkGenerator** on which you can call ***refresh*** and ***processElements*** methods.
 
 
 ## ⭐Usage Examples
