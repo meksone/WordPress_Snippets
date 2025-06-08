@@ -1,7 +1,7 @@
 <?php
 
 $snippet_name = "enable_additional_mimetypes";
-$version = "<!#FV> 0.0.1 </#FV>";
+$version = "<!#FV> 0.0.3 </#FV>";
 
 /*
  * Enable additional MIME types
@@ -13,8 +13,11 @@ function mk_additional_mime_types( $mimes ) {
 $mimes['cur'] = 'application/octet-stream';
 $mimes['ico'] = 'application/octet-stream';
 $mimes['woff'] = 'font/woff';
+$mimes['woff2'] = 'font/woff2';
+$mimes['otf'] = 'font/otf';
 $mimes['eot'] = 'application/vnd.ms-fontobject';
 $mimes['ttf'] = 'font/ttf';
+$mimes['svg'] = 'image/svg+xml';
 
 // Optional. Remove a mime type.
 unset( $mimes['exe'] );
