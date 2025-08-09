@@ -1,6 +1,6 @@
 /*
 $snippet_name = "obfuscated-email-link-generator";
-$version = "<!#FV> 0.1.6 </#FV>";
+$version = "<!#FV> 0.1.7 </#FV>";
 
 
  * Obfuscated Email Link Generator
@@ -11,8 +11,8 @@ $version = "<!#FV> 0.1.6 </#FV>";
 class EmailLinkGenerator {
     constructor() {
         this.defaultTitles = {
-            en: "Send email to",
-            it: "Invia email a"
+            en: "Send e-mail to",
+            it: "Invia e-mail a"
         };
         this.defaultCopyTitles = {
             en: "Copy e-mail",
@@ -316,31 +316,24 @@ class EmailLinkGenerator {
             // Create new link element
             const link = document.createElement('a');
             link.href = mailtoUrl;
-            this.setLinkAttributes(link, emailData, fullEmail);
 
-            // Store original innerHTML before potentially adding icon
+            // Store original innerHTML before clearing targetElement
             const originalInnerHTML = targetElement.innerHTML.trim();
 
             // Clear target element's content
             targetElement.innerHTML = '';
 
-            // Add icon to the link if specified
-            let mailtoIconClass = emailData.icon;
-            if (mailtoIconClass.toLowerCase() === 'true') {
-                mailtoIconClass = this.defaultMailtoIcon;
-            }
-            if (mailtoIconClass) {
-                const iconElement = document.createElement('i');
-                iconElement.className = `mk-icon ${mailtoIconClass}`;
-                link.appendChild(iconElement);
-            }
+            // Set attributes and add icon to the NEW link element
+            this.setLinkAttributes(link, emailData, fullEmail); // This will prepend icon if needed
 
-            // If target element had content, append it to the link
+            // Now, handle the content of the new link
+            // If original content exists, append it to the link (after the icon if any)
             if (originalInnerHTML) {
-                link.innerHTML += originalInnerHTML; // Append to existing content (icon or empty)
+                link.innerHTML += originalInnerHTML; // Append to existing content (which might be just the icon)
             } else {
-                // If target is empty and no original content, set default text
-                if (!mailtoIconClass) { // Only if no icon is present, otherwise icon is the content
+                // If no original content and no icon was added, set default email text
+                // Check if the link already has content (e.g., from an icon)
+                if (link.innerHTML.trim() === '') {
                     link.textContent = fullEmail;
                 }
             }
@@ -369,8 +362,8 @@ class EmailLinkGenerator {
         let titleText = emailData.title || this.generateDefaultTitle(fullEmail);
         
         // Add class for styling if not already present
-        if (!linkElement.classList.contains('mailto-link')) {
-            linkElement.classList.add('mailto-link');
+        if (!linkElement.classList.contains('mk-mailto-link')) {
+            linkElement.classList.add('mk-mailto-link');
         }
 
         // Store original email data as data attributes for reference
@@ -391,12 +384,13 @@ class EmailLinkGenerator {
         // Set the final title attribute
         linkElement.title = titleText;
 
-        // Add icon to the link if specified (for existing <a> tags)
+        // Add icon to the link if specified (for existing <a> tags or newly created ones)
         let mailtoIconClass = emailData.icon;
         if (mailtoIconClass.toLowerCase() === 'true') {
             mailtoIconClass = this.defaultMailtoIcon;
         }
-        if (mailtoIconClass && !linkElement.querySelector('.mk-icon')) { // Prevent adding duplicate icons
+        // IMPORTANT: Only add the icon if it's specified AND it's not already present
+        if (mailtoIconClass && !linkElement.querySelector('.mk-icon')) { 
             const iconElement = document.createElement('i');
             iconElement.className = `mk-icon ${mailtoIconClass}`;
             linkElement.prepend(iconElement); // Prepend the icon to the link's content
@@ -428,7 +422,7 @@ class EmailLinkGenerator {
         });
 
         // Remove existing mailto icons
-        document.querySelectorAll('.mailto-link .mk-icon').forEach(icon => {
+        document.querySelectorAll('.mk-mailto-link .mk-icon').forEach(icon => {
             icon.remove();
         });
         
