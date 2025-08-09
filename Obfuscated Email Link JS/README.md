@@ -118,6 +118,19 @@ The script auto loads itself (see the last lines of the code), and create an obj
 
 ## ⭐Usage Examples
 
+### Elementor Pro
+
+On a widget like *Text Editor*, *Icon List* or *simple HTML*, point to **Advanced Tab** and in the **Attributes** section adds every data-attribute needed, like in this example image
+
+![alt text](elementor-attr.png)
+
+If you need custom styling only on the page where the widget appears, also paste custom CSS in the **Custom CSS** panel
+
+![alt text](elementor-css.png)
+
+If your styling must be consistent across your site, it's better to paste the code in the Elementor's custom code section.
+
+
 ### HTML
 ```html
 <!DOCTYPE html>
