@@ -1,6 +1,6 @@
 /*
 $snippet_name = "obfuscated-email-link-generator";
-$version = "<!#FV> 0.1.4 </#FV>";
+$version = "<!#FV> 0.1.5 </#FV>";
 
 
  * Obfuscated Email Link Generator
@@ -18,6 +18,7 @@ class EmailLinkGenerator {
             en: "Copy e-mail",
             it: "Copia l'e-mail"
         };
+        this.defaultCopyIcon = "far fa-clipboard"; // Default icon for data-copylink="true"
         this.init();
     }
 
@@ -239,16 +240,27 @@ class EmailLinkGenerator {
         copyButton.href = '#';
         copyButton.className = 'mk-copylink-btn';
         
+        let iconClass = emailData.copyLinkIcon;
+        let buttonText = emailData.copyLink;
+
+        // If data-copylink is "true", text should be empty and use default icon if none specified
+        if (buttonText.toLowerCase() === 'true') {
+            buttonText = ''; // Empty text content
+            if (!iconClass) {
+                iconClass = this.defaultCopyIcon; // Use default icon
+            }
+        }
+
         // Add icon if specified
-        if (emailData.copyLinkIcon) {
+        if (iconClass) {
             const iconElement = document.createElement('i');
-            iconElement.className = `mk-copylink-icon ${emailData.copyLinkIcon}`;
+            iconElement.className = `mk-copylink-icon ${iconClass}`;
             copyButton.appendChild(iconElement);
         }
         
-        // Add text content
-        if (emailData.copyLink) {
-            const textNode = document.createTextNode(emailData.copyLink);
+        // Add text content if not empty
+        if (buttonText) {
+            const textNode = document.createTextNode(buttonText);
             copyButton.appendChild(textNode);
         }
         
