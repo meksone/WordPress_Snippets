@@ -1,6 +1,6 @@
 /*
 $snippet_name = "obfuscated-email-link-generator";
-$version = "<!#FV> 0.1.3 </#FV>";
+$version = "<!#FV> 0.1.4 </#FV>";
 
 
  * Obfuscated Email Link Generator
@@ -124,7 +124,8 @@ class EmailLinkGenerator {
             target: element.dataset.target?.trim() || '', // Added target attribute
             title: element.dataset.title?.trim() || '', // Added title attribute
             copyLink: element.dataset.copylink?.trim() || '', // Added copylink attribute
-            copyLinkTitle: element.dataset.copylinkTitle?.trim() || '' // Added copylink-title attribute
+            copyLinkTitle: element.dataset.copylinkTitle?.trim() || '', // Added copylink-title attribute
+            copyLinkIcon: element.dataset.copylinkIcon?.trim() || '' // Added copylink-icon attribute
         };
     }
 
@@ -237,7 +238,19 @@ class EmailLinkGenerator {
         const copyButton = document.createElement('a');
         copyButton.href = '#';
         copyButton.className = 'mk-copylink-btn';
-        copyButton.textContent = emailData.copyLink;
+        
+        // Add icon if specified
+        if (emailData.copyLinkIcon) {
+            const iconElement = document.createElement('i');
+            iconElement.className = `mk-copylink-icon ${emailData.copyLinkIcon}`;
+            copyButton.appendChild(iconElement);
+        }
+        
+        // Add text content
+        if (emailData.copyLink) {
+            const textNode = document.createTextNode(emailData.copyLink);
+            copyButton.appendChild(textNode);
+        }
         
         // Set title - use custom title or generate default
         const copyTitle = emailData.copyLinkTitle || this.generateDefaultCopyTitle();
