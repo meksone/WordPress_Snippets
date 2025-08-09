@@ -1,6 +1,6 @@
 /*
 $snippet_name = "obfuscated-email-link-generator";
-$version = "<!#FV> 0.1.7 </#FV>";
+$version = "<!#FV> 0.1.8 </#FV>";
 
 
  * Obfuscated Email Link Generator
@@ -11,8 +11,8 @@ $version = "<!#FV> 0.1.7 </#FV>";
 class EmailLinkGenerator {
     constructor() {
         this.defaultTitles = {
-            en: "Send e-mail to",
-            it: "Invia e-mail a"
+            en: "Send email to",
+            it: "Invia email a"
         };
         this.defaultCopyTitles = {
             en: "Copy e-mail",
@@ -20,6 +20,7 @@ class EmailLinkGenerator {
         };
         this.defaultCopyIcon = "far fa-clipboard"; // Default icon for data-copylink="true"
         this.defaultMailtoIcon = "far fa-envelope"; // Default icon for data-icon="true"
+        this.defaultLinkWrapperClass = "mk-linkwrapper"; // Default class for the link wrapper
         this.init();
     }
 
@@ -82,7 +83,10 @@ class EmailLinkGenerator {
         
         elements.forEach(element => {
             try {
-                this.createMailtoLink(element);
+                // Only process if not already processed
+                if (!element.dataset.emailProcessed) {
+                    this.createMailtoLink(element);
+                }
             } catch (error) {
                 console.warn('Error processing email element:', error, element);
             }
@@ -105,7 +109,7 @@ class EmailLinkGenerator {
         const targetElement = this.findTargetElement(emailData.className, sourceElement);
         
         if (targetElement) {
-            this.attachMailtoLink(targetElement, mailtoUrl, emailData);
+            this.attachMailtoLink(targetElement, mailtoUrl, emailData, sourceElement);
         } else {
             console.warn(`Target element with class "${emailData.className}" not found`);
         }
@@ -128,7 +132,8 @@ class EmailLinkGenerator {
             copyLink: element.dataset.copylink?.trim() || '', // Added copylink attribute
             copyLinkTitle: element.dataset.copylinkTitle?.trim() || '', // Added copylink-title attribute
             copyLinkIcon: element.dataset.copylinkIcon?.trim() || '', // Added copylink-icon attribute
-            icon: element.dataset.icon?.trim() || '' // Added icon attribute for mailto link
+            icon: element.dataset.icon?.trim() || '', // Added icon attribute for mailto link
+            linkWrapper: element.dataset.linkwrapper?.trim() || '' // Added linkwrapper attribute
         };
     }
 
@@ -297,22 +302,44 @@ class EmailLinkGenerator {
      * @param {HTMLElement} targetElement - Element to receive the mailto link
      * @param {string} mailtoUrl - Complete mailto URL
      * @param {Object} emailData - Original email data for reference
+     * @param {HTMLElement} sourceElement - The original element with data attributes
      */
-    attachMailtoLink(targetElement, mailtoUrl, emailData) {
+    attachMailtoLink(targetElement, mailtoUrl, emailData, sourceElement) {
         const fullEmail = `${emailData.email}@${emailData.domain}`;
-        
-        // If target is already a link, just update href
+        const wrapperClassName = emailData.linkWrapper || this.defaultLinkWrapperClass;
+
+        // Create the wrapper div
+        const wrapperDiv = document.createElement('div');
+        wrapperDiv.className = wrapperClassName;
+        // Add a flag to the wrapper to easily identify it during refresh
+        wrapperDiv.dataset.emailWrapper = 'true';
+
+        // Case 1: targetElement is already an <a> tag
         if (targetElement.tagName.toLowerCase() === 'a') {
+            // Update its href and set attributes (including icon)
             targetElement.href = mailtoUrl;
             this.setLinkAttributes(targetElement, emailData, fullEmail);
-            
-            // Add copy link if specified
+
+            const parentNode = targetElement.parentNode;
+            if (parentNode) {
+                // Replace the existing link with the wrapper div
+                parentNode.replaceChild(wrapperDiv, targetElement);
+                // Put the existing link inside the wrapper
+                wrapperDiv.appendChild(targetElement);
+            } else {
+                // Fallback if no parent (shouldn't happen in normal DOM)
+                console.warn('Target element has no parent, cannot wrap:', targetElement);
+                wrapperDiv.appendChild(targetElement);
+            }
+
+            // Add copy link if specified, append to the wrapper
             if (emailData.copyLink !== '') {
                 const copyButton = this.createCopyLinkButton(fullEmail, emailData);
-                // Insert copy button after the mailto link
-                targetElement.parentNode.insertBefore(copyButton, targetElement.nextSibling);
+                wrapperDiv.appendChild(copyButton);
             }
+
         } else {
+            // Case 2: targetElement is a container (div, span, p, etc.)
             // Create new link element
             const link = document.createElement('a');
             link.href = mailtoUrl;
@@ -320,7 +347,7 @@ class EmailLinkGenerator {
             // Store original innerHTML before clearing targetElement
             const originalInnerHTML = targetElement.innerHTML.trim();
 
-            // Clear target element's content
+            // Clear target element's content (it will now contain the wrapper)
             targetElement.innerHTML = '';
 
             // Set attributes and add icon to the NEW link element
@@ -338,17 +365,21 @@ class EmailLinkGenerator {
                 }
             }
             
-            targetElement.appendChild(link);
-            
-            // Add copy link if specified
+            // Append the newly created link to the wrapper
+            wrapperDiv.appendChild(link);
+
+            // Add copy link if specified, append to the wrapper
             if (emailData.copyLink !== '') {
                 const copyButton = this.createCopyLinkButton(fullEmail, emailData);
-                targetElement.appendChild(copyButton);
+                wrapperDiv.appendChild(copyButton);
             }
+
+            // Append the wrapper to the targetElement
+            targetElement.appendChild(wrapperDiv);
         }
 
-        // Add processed flag to avoid duplicate processing
-        targetElement.dataset.emailProcessed = 'true';
+        // Add processed flag to the original source element to prevent re-processing
+        sourceElement.dataset.emailProcessed = 'true';
     }
 
     /**
@@ -362,8 +393,8 @@ class EmailLinkGenerator {
         let titleText = emailData.title || this.generateDefaultTitle(fullEmail);
         
         // Add class for styling if not already present
-        if (!linkElement.classList.contains('mk-mailto-link')) {
-            linkElement.classList.add('mk-mailto-link');
+        if (!linkElement.classList.contains('mk-mailto-link')) { // Renamed class
+            linkElement.classList.add('mk-mailto-link'); // Renamed class
         }
 
         // Store original email data as data attributes for reference
@@ -411,19 +442,15 @@ class EmailLinkGenerator {
      * Refresh all email links (useful after DOM updates)
      */
     refresh() {
-        // Remove processed flags and copy buttons
+        // Remove processed flags from source elements
         document.querySelectorAll('[data-email-processed]').forEach(el => {
             delete el.dataset.emailProcessed;
         });
         
-        // Remove existing copy buttons
-        document.querySelectorAll('.mk-copylink-btn').forEach(btn => {
-            btn.remove();
-        });
-
-        // Remove existing mailto icons
-        document.querySelectorAll('.mk-mailto-link .mk-icon').forEach(icon => {
-            icon.remove();
+        // Remove existing wrapper divs (which contain the links and copy buttons)
+        // We target the default wrapper class and any wrapper with the data-email-wrapper flag
+        document.querySelectorAll(`.${this.defaultLinkWrapperClass}, [data-email-wrapper="true"]`).forEach(wrapper => {
+            wrapper.remove();
         });
         
         // Reprocess all elements
