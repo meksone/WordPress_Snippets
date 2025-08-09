@@ -1,6 +1,6 @@
 /*
 $snippet_name = "obfuscated-email-link-generator";
-$version = "<!#FV> 0.1.2 </#FV>";
+$version = "<!#FV> 0.1.3 </#FV>";
 
 
  * Obfuscated Email Link Generator
@@ -13,6 +13,10 @@ class EmailLinkGenerator {
         this.defaultTitles = {
             en: "Send email to",
             it: "Invia email a"
+        };
+        this.defaultCopyTitles = {
+            en: "Copy e-mail",
+            it: "Copia l'e-mail"
         };
         this.init();
     }
@@ -44,6 +48,15 @@ class EmailLinkGenerator {
         const lang = this.getDocumentLanguage();
         const defaultText = this.defaultTitles[lang];
         return `${defaultText} ${email}`;
+    }
+
+    /**
+     * Generate default copy title text based on document language
+     * @returns {string} Localized copy title text
+     */
+    generateDefaultCopyTitle() {
+        const lang = this.getDocumentLanguage();
+        return this.defaultCopyTitles[lang];
     }
 
     /**
@@ -109,7 +122,9 @@ class EmailLinkGenerator {
             body: element.dataset.body?.trim() || '',
             className: element.dataset.class?.trim() || '',
             target: element.dataset.target?.trim() || '', // Added target attribute
-            title: element.dataset.title?.trim() || '' // Added title attribute
+            title: element.dataset.title?.trim() || '', // Added title attribute
+            copyLink: element.dataset.copylink?.trim() || '', // Added copylink attribute
+            copyLinkTitle: element.dataset.copylinkTitle?.trim() || '' // Added copylink-title attribute
         };
     }
 
@@ -182,6 +197,75 @@ class EmailLinkGenerator {
     }
 
     /**
+     * Copy email to clipboard
+     * @param {string} email - Email address to copy
+     * @returns {Promise<boolean>} Success status
+     */
+    async copyToClipboard(email) {
+        try {
+            if (navigator.clipboard && window.isSecureContext) {
+                // Use modern clipboard API
+                await navigator.clipboard.writeText(email);
+                return true;
+            } else {
+                // Fallback for older browsers or non-HTTPS contexts
+                const textArea = document.createElement('textarea');
+                textArea.value = email;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                textArea.style.top = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                const result = document.execCommand('copy');
+                document.body.removeChild(textArea);
+                return result;
+            }
+        } catch (error) {
+            console.warn('Failed to copy email to clipboard:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Create copy link button
+     * @param {string} fullEmail - Complete email address
+     * @param {Object} emailData - Email data object
+     * @returns {HTMLElement} Copy link element
+     */
+    createCopyLinkButton(fullEmail, emailData) {
+        const copyButton = document.createElement('a');
+        copyButton.href = '#';
+        copyButton.className = 'mk-copylink-btn';
+        copyButton.textContent = emailData.copyLink;
+        
+        // Set title - use custom title or generate default
+        const copyTitle = emailData.copyLinkTitle || this.generateDefaultCopyTitle();
+        copyButton.title = copyTitle;
+        
+        // Add click event handler
+        copyButton.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const success = await this.copyToClipboard(fullEmail);
+            
+            if (success) {
+                // Optional: Add visual feedback
+                const originalTitle = copyButton.title;
+                const lang = this.getDocumentLanguage();
+                const successText = lang === 'it' ? 'E-mail copiata!' : 'Email copied!';
+                copyButton.title = successText;
+                
+                // Reset title after 2 seconds
+                setTimeout(() => {
+                    copyButton.title = originalTitle;
+                }, 2000);
+            }
+        });
+        
+        return copyButton;
+    }
+
+    /**
      * Attach mailto link to target element
      * @param {HTMLElement} targetElement - Element to receive the mailto link
      * @param {string} mailtoUrl - Complete mailto URL
@@ -194,6 +278,13 @@ class EmailLinkGenerator {
         if (targetElement.tagName.toLowerCase() === 'a') {
             targetElement.href = mailtoUrl;
             this.setLinkAttributes(targetElement, emailData, fullEmail);
+            
+            // Add copy link if specified
+            if (emailData.copyLink !== '') {
+                const copyButton = this.createCopyLinkButton(fullEmail, emailData);
+                // Insert copy button after the mailto link
+                targetElement.parentNode.insertBefore(copyButton, targetElement.nextSibling);
+            }
         } else {
             // Create new link element
             const link = document.createElement('a');
@@ -209,6 +300,12 @@ class EmailLinkGenerator {
                 // If target is empty, set default text
                 link.textContent = fullEmail;
                 targetElement.appendChild(link);
+            }
+            
+            // Add copy link if specified
+            if (emailData.copyLink !== '') {
+                const copyButton = this.createCopyLinkButton(fullEmail, emailData);
+                targetElement.appendChild(copyButton);
             }
         }
 
@@ -264,9 +361,14 @@ class EmailLinkGenerator {
      * Refresh all email links (useful after DOM updates)
      */
     refresh() {
-        // Remove processed flags
+        // Remove processed flags and copy buttons
         document.querySelectorAll('[data-email-processed]').forEach(el => {
             delete el.dataset.emailProcessed;
+        });
+        
+        // Remove existing copy buttons
+        document.querySelectorAll('.mk-copylink-btn').forEach(btn => {
+            btn.remove();
         });
         
         // Reprocess all elements
