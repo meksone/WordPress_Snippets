@@ -226,3 +226,14 @@ document.body.appendChild(sameTabElement);
 EmailLinkGenerator.processElement(newTabElement);
 EmailLinkGenerator.processElement(sameTabElement);
 ```
+
+## 📋ChangeLog
+
+- **Version 0.1.8** - Added a div to wrap links, with default class (mk-linkwrapper);<br>the class can be customized using data-linkwrapper attribute.<br>This is for allowing custom styling (inline/block for example)
+- **Version 0.1.7** - bugfix for titles and icons
+- **Version 0.1.6** - Added second language: it_IT and en_EN; <br>added falbback data-titles if custom ones aren't provided;<br>Added custom icon for mailto link (defaults to far fa-envelope is not specified)
+- **Version 0.1.5** - Added data-title customization also for copy button;<br>added classes to main elements to allow CSS styling;<br>added custom icon for copy button (defaults to far fa-clipboard if not specified)
+- **Version 0.1.4** - Added data-title customization for email link
+- **Version 0.1.3** - Copy email to clipboard added
+- **Version 0.1.2** - Bug fixing, version bump
+- **Version 0.0.1** - Initial release, basic data-attributes
