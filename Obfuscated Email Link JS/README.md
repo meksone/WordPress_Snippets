@@ -1,4 +1,5 @@
 # 📧Obfuscated Email Link Generator JS
+*Version 0.1.8*
 
 This script was primarily created for use in WordPress websites, using **Elementor Pro** or other page builders that make it easy to add "data-attributes" to elements;
 
@@ -13,20 +14,38 @@ However, it can be used on any type of website, on plain HTML or Javascript, as 
 - **Error Handling** - Graceful error handling with console warnings
 - **Accessibility** - Adds title attributes for better accessibility
 - **Dynamic Content Support** - Methods for processing dynamically added content
-- **Performance Optimized** - Avoids duplicate processing with flags
+- **Optimized Performance** - Avoids duplicate processing with flags
+- **Avoid Spam Bots** - since the HTML code is free from email links (it will be created only in frontend), most of the spam bots, crawlers and data scraping tools can't see the e-mail links, resulting in a reduced possibility to fall into a spam-list  
 
-The script will automatically run when the DOM is loaded and create functional mailto links based on your data attributes.
+The script will automatically run when the DOM is loaded and create functional mailto: links based on your data attributes.
 
 ### Data attributes used for this script to work:
 
 | Data attribute | Required? | Description |
 |---|---|---|
-|**data-email**  | **Yes**   | **the username part of the email (all the text before the @)**
-|**data-domain** | **Yes**   | **only the domain part (after the @, and without @ itself)**
-|data-subject    | No        | the subject of the email 
-|data-body       | No        | the body of the email
-|data-class      | No        | the class of the element that must be converted to email link
-|data-target     | No        | specify if the link should open in a new tab; any value is valid (true,yes, ciao,⭐)<br>because only the presence is really checked
+|**data-email**     | **Yes**   | **the username part of the email (all the text before the @)**
+|**data-domain**    | **Yes**   | **only the domain part (after the @, and without @ itself)**
+|data-subject       | No        | the subject of the email 
+|data-body          | No        | the body of the email
+|data-class         | No        | the class of the element that must be converted to email link
+|data-target        | No        | specify if the link should open in a new tab; any value is valid (true,yes, ciao,⭐) because only the presence is really checked
+|data-title         | No        | If present, use the text provided as title on hover (for accessibility purposes);if not present, a default text will be used ("Send e-mail to" or "Invia e-mail a" if the site is in Italian)
+|data-copylink      | No        | if valorized "true", it adds the button to copy the email in the clipboard and use a default icon for showing the button (FontAwesome far fa-clipboard class is used);<br>if data-copylink-icon is present, use that class instead for a custom icon;<br>If any value other than "true" is used, the text will be used for the button and the icon will be showed only if the data-copylink-icon attribute is present 
+|data-copylink-title| No        | Use a custom data-title text for accessibility purpose; if not specified, it uses a default text ("Copy e-mail" and "Copia l'e-mail" if the site is in Italian)
+|data-copylink-icon | No        | Use a custom Fontawesome class for the copy email button (default far fa-clipboard)
+|data-icon          | No        | If valorized as "true", adds a default icon to the left of the email link, using "far fa-envelope" Fontawesome icon; if valorized with valid class, use that instead
+|data-linkwrapper   | No        | If valorized, use that name for the class name attached to the <div> element that contains all the links (mailto and copy button); if not set, the default class name "mk-linkwrapper" will be used
+
+### CSS classes used for custom styling
+The styling of the link inherit the styling of the main element where the script runs.
+
+However, if some custom styling is needed, there's some CSS classes for this purpose
+| CSS default class name | Can be customized? | Purpose
+|---|---|---|
+|.mk-icon           | No  | used for the styling of the email link icon (if present); name can't be customized
+|.mk-copylink-btn   | No  | used for the styling of the copy email button (if present); name can't be customized 
+|.mk-mailto-link    | No  | used for the styling of the <a>
+|.mk-linkwrapper    | Yes | used for the styling of the wrapper for the links; useful if you want inline (default) or stacked design. Use **diplay:flex** for maximum flexibility
 
 
 ## 🔐Security Notes
@@ -39,9 +58,10 @@ When adding target="_blank", the script automatically includes rel="noopener nor
 Whilst it's a completely functional script, there's still rooms for improvement; 
 I want to  point out some little details that I want to correct in the near future:
 
-- in the **setLinkAttributes** function, the link has a hover message that is hardcoded
-(linkElement.title = `Send email to ${emailData.email}@${emailData.domain}`;); i plan to make this configurable using another data-attribute
-- also in the same function, there's hardcoded class called **mailto-link** that I want to make configurable through another data-attribute, different from data-class that has a different purpose
+- ~~in the **setLinkAttributes** function, the link has a hover message that is hardcoded
+(linkElement.title = `Send email to ${emailData.email}@${emailData.domain}`;); i plan to make this configurable using another data-attribute~~ ✅ Done in 0.1.5
+- ~~also in the same function, there's hardcoded class called **mailto-link** that I want to make configurable through another data-attribute, different from data-class that has a different purpose~~ ✅ Done in 0.1.7 - this class remains hardcoded and was renamed in "mk-mailto-link", used for styling in custom CSS if needed
+- implement a more extented support for Languages, using language codes (like en_EN, de_DE and so on) for defining title attributes; maybe a good approach is to dinamically detects if a language code is appended to a text field and then use it if matched with tha page language.
 
 ### ℹ️Disclaimer
 
@@ -82,6 +102,14 @@ If you prefer, you can also save the javascript in a .js file, put it where you 
 
 ```html
 <script src="path/to/your/file.js" type="text/javascript"></script>
+```
+
+It's also possible to load in a single page using <script></script> tags; to do this, you can use an HTML block (there's one in Gutenberg, Elementor or in any decent theme builder)
+
+```html
+<script>
+    ... paste code here ...
+</script>
 ```
 
 The script auto loads itself (see the last lines of the code), and create an object called
@@ -185,4 +213,3 @@ document.body.appendChild(sameTabElement);
 EmailLinkGenerator.processElement(newTabElement);
 EmailLinkGenerator.processElement(sameTabElement);
 ```
-

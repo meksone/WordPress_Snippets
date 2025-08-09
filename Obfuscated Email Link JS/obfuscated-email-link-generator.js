@@ -1,6 +1,6 @@
 /*
 $snippet_name = "obfuscated-email-link-generator";
-$version = "<!#FV> 0.1.1 </#FV>";
+$version = "<!#FV> 0.1.2 </#FV>";
 
 
  * Obfuscated Email Link Generator
@@ -10,9 +10,41 @@ $version = "<!#FV> 0.1.1 </#FV>";
 
 class EmailLinkGenerator {
     constructor() {
+        this.defaultTitles = {
+            en: "Send email to",
+            it: "Invia email a"
+        };
         this.init();
     }
 
+    /**
+     * Get the document language from html lang attribute
+     * @returns {string} Language code (defaults to 'en')
+     */
+    getDocumentLanguage() {
+        const htmlLang = document.documentElement.lang || document.querySelector('html')?.getAttribute('lang');
+        
+        if (!htmlLang) {
+            return 'en';
+        }
+        
+        // Extract primary language code (e.g., 'en' from 'en-US')
+        const primaryLang = htmlLang.toLowerCase().split('-')[0];
+        
+        // Return the language if we support it, otherwise default to English
+        return this.defaultTitles[primaryLang] ? primaryLang : 'en';
+    }
+
+    /**
+     * Generate default title text based on document language
+     * @param {string} email - Full email address
+     * @returns {string} Localized title text
+     */
+    generateDefaultTitle(email) {
+        const lang = this.getDocumentLanguage();
+        const defaultText = this.defaultTitles[lang];
+        return `${defaultText} ${email}`;
+    }
 
     /**
      * Initialize the email link generator
@@ -76,7 +108,8 @@ class EmailLinkGenerator {
             subject: element.dataset.subject?.trim() || '',
             body: element.dataset.body?.trim() || '',
             className: element.dataset.class?.trim() || '',
-            target: element.dataset.target?.trim() || '' // Added target attribute
+            target: element.dataset.target?.trim() || '', // Added target attribute
+            title: element.dataset.title?.trim() || '' // Added title attribute
         };
     }
 
@@ -155,15 +188,17 @@ class EmailLinkGenerator {
      * @param {Object} emailData - Original email data for reference
      */
     attachMailtoLink(targetElement, mailtoUrl, emailData) {
+        const fullEmail = `${emailData.email}@${emailData.domain}`;
+        
         // If target is already a link, just update href
         if (targetElement.tagName.toLowerCase() === 'a') {
             targetElement.href = mailtoUrl;
-            this.setLinkAttributes(targetElement, emailData);
+            this.setLinkAttributes(targetElement, emailData, fullEmail);
         } else {
             // Create new link element
             const link = document.createElement('a');
             link.href = mailtoUrl;
-            this.setLinkAttributes(link, emailData);
+            this.setLinkAttributes(link, emailData, fullEmail);
 
             // If target element has content, wrap it
             if (targetElement.innerHTML.trim()) {
@@ -172,7 +207,7 @@ class EmailLinkGenerator {
                 targetElement.appendChild(link);
             } else {
                 // If target is empty, set default text
-                link.textContent = `${emailData.email}@${emailData.domain}`;
+                link.textContent = fullEmail;
                 targetElement.appendChild(link);
             }
         }
@@ -185,10 +220,11 @@ class EmailLinkGenerator {
      * Set additional attributes for the mailto link
      * @param {HTMLElement} linkElement - Link element
      * @param {Object} emailData - Email data object
+     * @param {string} fullEmail - Complete email address
      */
-    setLinkAttributes(linkElement, emailData) {
-        // Add title attribute for accessibility
-        linkElement.title = `Send email to ${emailData.email}@${emailData.domain}`;
+    setLinkAttributes(linkElement, emailData, fullEmail) {
+        // Set title attribute - use custom title or generate default
+        let titleText = emailData.title || this.generateDefaultTitle(fullEmail);
         
         // Add class for styling if not already present
         if (!linkElement.classList.contains('mailto-link')) {
@@ -196,7 +232,7 @@ class EmailLinkGenerator {
         }
 
         // Store original email data as data attributes for reference
-        linkElement.dataset.originalEmail = `${emailData.email}@${emailData.domain}`;
+        linkElement.dataset.originalEmail = fullEmail;
 
         // Handle target attribute - only add target="_blank" if data-target is present
         if (emailData.target !== '') {
@@ -205,8 +241,13 @@ class EmailLinkGenerator {
             linkElement.rel = 'noopener noreferrer';
             
             // Update title to indicate it opens in new tab
-            linkElement.title += ' (Opens in new tab)';
+            const lang = this.getDocumentLanguage();
+            const newTabText = lang === 'it' ? ' (Si apre in una nuova scheda)' : ' (Opens in new tab)';
+            titleText += newTabText;
         }
+
+        // Set the final title attribute
+        linkElement.title = titleText;
     }
 
     /**
