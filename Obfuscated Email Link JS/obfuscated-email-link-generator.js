@@ -1,6 +1,6 @@
 /*
 $snippet_name = "obfuscated-email-link-generator";
-$version = "<!#FV> 0.1.5 </#FV>";
+$version = "<!#FV> 0.1.6 </#FV>";
 
 
  * Obfuscated Email Link Generator
@@ -19,6 +19,7 @@ class EmailLinkGenerator {
             it: "Copia l'e-mail"
         };
         this.defaultCopyIcon = "far fa-clipboard"; // Default icon for data-copylink="true"
+        this.defaultMailtoIcon = "far fa-envelope"; // Default icon for data-icon="true"
         this.init();
     }
 
@@ -126,7 +127,8 @@ class EmailLinkGenerator {
             title: element.dataset.title?.trim() || '', // Added title attribute
             copyLink: element.dataset.copylink?.trim() || '', // Added copylink attribute
             copyLinkTitle: element.dataset.copylinkTitle?.trim() || '', // Added copylink-title attribute
-            copyLinkIcon: element.dataset.copylinkIcon?.trim() || '' // Added copylink-icon attribute
+            copyLinkIcon: element.dataset.copylinkIcon?.trim() || '', // Added copylink-icon attribute
+            icon: element.dataset.icon?.trim() || '' // Added icon attribute for mailto link
         };
     }
 
@@ -316,16 +318,34 @@ class EmailLinkGenerator {
             link.href = mailtoUrl;
             this.setLinkAttributes(link, emailData, fullEmail);
 
-            // If target element has content, wrap it
-            if (targetElement.innerHTML.trim()) {
-                link.innerHTML = targetElement.innerHTML;
-                targetElement.innerHTML = '';
-                targetElement.appendChild(link);
-            } else {
-                // If target is empty, set default text
-                link.textContent = fullEmail;
-                targetElement.appendChild(link);
+            // Store original innerHTML before potentially adding icon
+            const originalInnerHTML = targetElement.innerHTML.trim();
+
+            // Clear target element's content
+            targetElement.innerHTML = '';
+
+            // Add icon to the link if specified
+            let mailtoIconClass = emailData.icon;
+            if (mailtoIconClass.toLowerCase() === 'true') {
+                mailtoIconClass = this.defaultMailtoIcon;
             }
+            if (mailtoIconClass) {
+                const iconElement = document.createElement('i');
+                iconElement.className = `mk-icon ${mailtoIconClass}`;
+                link.appendChild(iconElement);
+            }
+
+            // If target element had content, append it to the link
+            if (originalInnerHTML) {
+                link.innerHTML += originalInnerHTML; // Append to existing content (icon or empty)
+            } else {
+                // If target is empty and no original content, set default text
+                if (!mailtoIconClass) { // Only if no icon is present, otherwise icon is the content
+                    link.textContent = fullEmail;
+                }
+            }
+            
+            targetElement.appendChild(link);
             
             // Add copy link if specified
             if (emailData.copyLink !== '') {
@@ -370,6 +390,17 @@ class EmailLinkGenerator {
 
         // Set the final title attribute
         linkElement.title = titleText;
+
+        // Add icon to the link if specified (for existing <a> tags)
+        let mailtoIconClass = emailData.icon;
+        if (mailtoIconClass.toLowerCase() === 'true') {
+            mailtoIconClass = this.defaultMailtoIcon;
+        }
+        if (mailtoIconClass && !linkElement.querySelector('.mk-icon')) { // Prevent adding duplicate icons
+            const iconElement = document.createElement('i');
+            iconElement.className = `mk-icon ${mailtoIconClass}`;
+            linkElement.prepend(iconElement); // Prepend the icon to the link's content
+        }
     }
 
     /**
@@ -394,6 +425,11 @@ class EmailLinkGenerator {
         // Remove existing copy buttons
         document.querySelectorAll('.mk-copylink-btn').forEach(btn => {
             btn.remove();
+        });
+
+        // Remove existing mailto icons
+        document.querySelectorAll('.mailto-link .mk-icon').forEach(icon => {
+            icon.remove();
         });
         
         // Reprocess all elements
