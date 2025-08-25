@@ -9,3 +9,5 @@ function custom_admin_dashboard_font() {
     echo '<style>body, #wpadminbar *:not([class="ab-icon"]), .wp-core-ui, .media-menu, .media-frame *, .media-modal *{font-family: -apple-system, BlinkMacSystemFont, "Rubik","Roboto Condensed", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;} </style>' . PHP_EOL;
 }   
 add_action( 'admin_head', 'custom_admin_dashboard_font' );
+
+
