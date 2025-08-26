@@ -1,0 +1,187 @@
+<style>
+/* View Transitions - only for Chrome/Edge/Opera/Safari/Android for now...
+ * https://caniuse.com/view-transitions
+ * */
+@view-transition { 
+	navigation: auto;
+}
+
+/* Use CSS custom properties to control animation direction */
+:root {
+  --wipe-direction: 1; /* 1 for forward, -1 for back */
+}
+
+/* Main transition animations using custom properties */
+::view-transition-old(root) {
+  animation: wipe-out 400ms ease-in-out;
+}
+
+::view-transition-new(root) {
+  animation: wipe-in 400ms ease-in-out;
+}
+
+/* Dynamic animations that use CSS custom properties */
+@keyframes wipe-out {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(calc(-100% * var(--wipe-direction)));
+    opacity: 0;
+  }
+}
+
+@keyframes wipe-in {
+  0% {
+    transform: translateY(calc(100% * var(--wipe-direction)));
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+</style>
+
+<script>
+/* 
+ * Version 0.0.5
+ * Working version for forward and backwards animations
+ * 
+ * HOW IT WORKS:
+ * This script detects navigation direction (forward/backward) and applies different
+ * CSS View Transition animations accordingly:
+ * 
+ * - FORWARD navigation (links, form submissions): 
+ *   Old page slides UP, new page slides in from BOTTOM
+ * 
+ * - BACKWARD navigation (back button, browser back):
+ *   Old page slides DOWN, new page slides in from TOP
+ * 
+ * DETECTION METHODS:
+ * 1. Performance API: Uses performance.getEntriesByType('navigation')[0].type
+ *    to detect if current page was loaded via back_forward navigation
+ * 
+ * 2. Navigation API (modern browsers): Stores direction in sessionStorage
+ *    for the next page to read
+ * 
+ * ANIMATION CONTROL:
+ * Uses CSS custom property --wipe-direction:
+ * - Value 1 = forward animation
+ * - Value -1 = backward animation (reversed)
+ * 
+ * DEBUG:
+ * Run debugNavigation() in console to see current state and navigation details
+ */
+
+// ============ DEBUG CONFIGURATION ============
+const DEBUG_ENABLED = false; // Set to false to disable console logging
+// ============================================
+
+function debugLog(...args) {
+  if (DEBUG_ENABLED) {
+    console.log(...args);
+  }
+}
+
+debugLog('🚀 Navigation API detection script v0.0.5 loaded');
+
+// Function to set animation direction via CSS custom property
+function setAnimationDirection(direction) {
+  const directionValue = direction === 'back' ? -1 : 1;
+  debugLog(`📍 Setting animation direction: ${direction} (value: ${directionValue})`);
+  
+  // Set the custom property on the root element
+  document.documentElement.style.setProperty('--wipe-direction', directionValue);
+  
+  debugLog(`✅ CSS custom property set: ${document.documentElement.style.getPropertyValue('--wipe-direction')}`);
+}
+
+// Detect navigation type immediately when page starts loading
+(function detectNavigationType() {
+  debugLog('🔍 Detecting navigation type on page load...');
+  
+  // Check performance navigation timing
+  const navEntries = performance.getEntriesByType('navigation');
+  const navEntry = navEntries[0];
+  
+  debugLog('Navigation entry:', navEntry);
+  debugLog('Navigation type:', navEntry?.type);
+  
+  if (navEntry?.type === 'back_forward') {
+    debugLog('⬅️ BACK navigation detected (performance API)');
+    setAnimationDirection('back');
+  } else {
+    debugLog('➡️ FORWARD navigation detected');
+    setAnimationDirection('forward');
+  }
+})();
+
+// Check if Navigation API is available for future navigations
+if ('navigation' in window) {
+  debugLog('✅ Navigation API is available for future navigations');
+  
+  navigation.addEventListener('navigate', function(event) {
+    debugLog('🔄 Navigation event detected for future navigation');
+    debugLog('Navigation type:', event.navigationType);
+    
+    // Set animation direction for the NEXT page
+    if (event.navigationType === 'traverse') {
+      debugLog('⬅️ BACK/FORWARD navigation detected');
+      // Store in sessionStorage so the next page can read it
+      sessionStorage.setItem('nextNavigationDirection', 'back');
+    } else {
+      debugLog('➡️ FORWARD navigation detected');
+      sessionStorage.setItem('nextNavigationDirection', 'forward');
+    }
+  });
+  
+} else {
+  debugLog('❌ Navigation API not available');
+}
+
+// Check if there's a stored navigation direction from the previous page
+document.addEventListener('DOMContentLoaded', function() {
+  const storedDirection = sessionStorage.getItem('nextNavigationDirection');
+  if (storedDirection) {
+    debugLog(`📦 Found stored navigation direction: ${storedDirection}`);
+    setAnimationDirection(storedDirection);
+    // Clear it so it doesn't affect future navigations
+    sessionStorage.removeItem('nextNavigationDirection');
+  } else {
+    debugLog('📦 No stored navigation direction found');
+  }
+});
+
+// Enhanced debug function - Always available regardless of DEBUG_ENABLED
+window.debugNavigation = function() {
+  console.log('🔍 Navigation Debug Info v0.0.5:');
+  console.log('├─ Current --wipe-direction:', document.documentElement.style.getPropertyValue('--wipe-direction'));
+  console.log('├─ Computed --wipe-direction:', getComputedStyle(document.documentElement).getPropertyValue('--wipe-direction'));
+  console.log('├─ Navigation entry type:', performance.getEntriesByType('navigation')[0]?.type);
+  console.log('├─ Stored direction:', sessionStorage.getItem('nextNavigationDirection'));
+  console.log('├─ Current URL:', location.href);
+  console.log('├─ Debug enabled:', DEBUG_ENABLED);
+  console.log('└─ Animation interpretation:', 
+    document.documentElement.style.getPropertyValue('--wipe-direction') === '-1' ? 'BACKWARD' : 'FORWARD');
+  
+  console.log('\n💡 How to use:');
+  console.log('• Navigate forward (click links) → Pages slide UP/DOWN');
+  console.log('• Navigate backward (back button) → Pages slide DOWN/UP (reversed)');
+  console.log('• Change DEBUG_ENABLED in script to toggle console logging');
+};
+
+// Debug output (only when enabled)
+if (DEBUG_ENABLED) {
+  setInterval(() => {
+    const direction = document.documentElement.style.getPropertyValue('--wipe-direction');
+    if (direction && direction !== '1') {
+      debugLog(`🔍 DEBUG: Current wipe direction: ${direction}`);
+    }
+  }, 2000);
+}
+
+// Show initial debug info
+debugLog('📋 Initial setup complete. Run debugNavigation() for detailed info.');
+</script>
