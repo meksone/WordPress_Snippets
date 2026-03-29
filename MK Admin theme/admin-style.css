@@ -424,6 +424,21 @@ input, select, textarea, button {
     color: #fff !important;
 }
 
+/* Keep primary colour on hover — prevents WP/Gutenberg grey override */
+.postbox .postbox-header:hover,
+.postbox h2.hndle:hover {
+    background: var(--mk-color-primary) !important;
+    color: #fff !important;
+}
+
+/* Gutenberg adds a separate hover on the .hndle text node — neutralise it */
+.postbox .postbox-header .hndle:hover,
+.postbox .postbox-header .hndle:focus {
+    background: transparent !important;
+    color: #fff !important;
+    box-shadow: none !important;
+}
+
 /* Notices */
 .notice, div.notice, .updated, .error {
     border-radius: var(--mk-radius);

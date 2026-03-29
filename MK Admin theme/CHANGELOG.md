@@ -1,5 +1,14 @@
 # Changelog – MK Admin Theme
 
+## [1.0.4] – 2026-03-29
+### Fixed
+- Postbox headers in Gutenberg editor no longer flash grey on hover; WP/Gutenberg hover rule overriding our `background` is suppressed with `!important`
+- Separate `.hndle` text-node hover (Gutenberg) neutralised so the entire header stays uniform on mouse-over
+
+## [1.0.3] – 2026-03-29
+### Fixed
+- Elementor palette passed to Iris color pickers now excludes transparent colors (`rgba`, `hsla`, 8-digit hex) — Iris does not support transparency and would render them incorrectly
+
 ## [1.0.2] – 2026-03-29
 ### Fixed
 - Iris color pickers on the admin theme settings page now show the Elementor palette as swatches instead of Iris defaults
