@@ -5,7 +5,7 @@
     'use strict';
 
     $(document).ready(function () {
-        $('.mk-color-picker').wpColorPicker({
+        var options = {
             // Live preview: inject a temporary <style> tag whenever a colour changes.
             change: function (event, ui) {
                 mkAdminThemeLivePreview();
@@ -13,7 +13,18 @@
             clear: function () {
                 mkAdminThemeLivePreview();
             }
-        });
+        };
+
+        // Use Elementor palette as swatches if available.
+        if (
+            typeof mkAdminTheme !== 'undefined' &&
+            mkAdminTheme.elementorPalette &&
+            mkAdminTheme.elementorPalette.length > 0
+        ) {
+            options.palettes = mkAdminTheme.elementorPalette;
+        }
+
+        $('.mk-color-picker').wpColorPicker(options);
     });
 
     function mkAdminThemeLivePreview() {

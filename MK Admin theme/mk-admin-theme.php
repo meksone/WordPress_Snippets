@@ -3,7 +3,7 @@
  * Plugin Name: MK Admin Theme
  * Plugin URI:  https://meksone.com
  * Description: Custom WordPress admin theme with Poppins font, rounded corners, and a blue/yellow palette. Fully customizable via Settings > Impostazioni tema admin.
- * Version:     1.0.1
+ * Version:     1.0.2
  * Author:      Manuel Serrenti (meksONE)
  * Author URI:  https://meksone.com
  * License:     GPL-2.0+
@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'MK_ADMIN_THEME_VERSION', '1.0.1' );
+define( 'MK_ADMIN_THEME_VERSION', '1.0.2' );
 define( 'MK_ADMIN_THEME_URL',     plugin_dir_url( __FILE__ ) );
 define( 'MK_ADMIN_THEME_PATH',    plugin_dir_path( __FILE__ ) );
 
@@ -162,6 +162,16 @@ function mk_admin_theme_admin_scripts( $hook ) {
         MK_ADMIN_THEME_VERSION,
         true
     );
+
+    // Pass Elementor palette to the settings color pickers (if available).
+    $palette = [];
+    $colors  = mk_admin_theme_get_elementor_colors();
+    if ( ! is_wp_error( $colors ) ) {
+        $palette = array_column( $colors, 'color' );
+    }
+    wp_localize_script( 'mk-admin-theme-settings', 'mkAdminTheme', [
+        'elementorPalette' => $palette,
+    ] );
 }
 add_action( 'admin_enqueue_scripts', 'mk_admin_theme_admin_scripts' );
 

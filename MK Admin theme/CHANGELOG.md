@@ -1,5 +1,10 @@
 # Changelog – MK Admin Theme
 
+## [1.0.2] – 2026-03-29
+### Fixed
+- Iris color pickers on the admin theme settings page now show the Elementor palette as swatches instead of Iris defaults
+- Elementor colors are passed to `settings.js` via `wp_localize_script()` and forwarded as `palettes` to `wpColorPicker()` — falls back to Iris defaults gracefully when Elementor is unavailable
+
 ## [1.0.1] – 2026-03-29
 ### Added
 - Elementor palette sync integration (Gutenberg + ACF color picker)
