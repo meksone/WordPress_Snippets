@@ -3,7 +3,7 @@
  * Plugin Name: MK Admin Theme
  * Plugin URI:  https://meksone.com
  * Description: Custom WordPress admin theme with Poppins font, rounded corners, and a blue/yellow palette. Fully customizable via Settings > Impostazioni tema admin.
- * Version:     1.0.4
+ * Version:     1.0.6
  * Author:      Manuel Serrenti (meksONE)
  * Author URI:  https://meksone.com
  * License:     GPL-2.0+
@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'MK_ADMIN_THEME_VERSION', '1.0.4' );
+define( 'MK_ADMIN_THEME_VERSION', '1.0.6' );
 define( 'MK_ADMIN_THEME_URL',     plugin_dir_url( __FILE__ ) );
 define( 'MK_ADMIN_THEME_PATH',    plugin_dir_path( __FILE__ ) );
 
@@ -40,9 +40,16 @@ function mk_admin_theme_defaults() {
         'color_button_primary_text' => '#ffffff',
         'color_button_secondary_bg' => '#fdc513',
         'color_button_secondary_text' => '#013162',
-        // Integrations
+        // Integrations – Elementor sync
         'sync_elementor_gutenberg'  => '0',
         'sync_elementor_acf'        => '0',
+        // Integrations – Gutenberg
+        'gutenberg_title_only'       => '0',
+        'gutenberg_title_only_types' => 'post',
+        // Integrations – Sidebar resize
+        'sidebar_resize'             => '0',
+        'sidebar_resize_types'       => 'post, page',
+        'sidebar_resize_logo'        => '',
     ];
 }
 
@@ -134,7 +141,9 @@ add_action( 'admin_init', 'mk_admin_theme_register_settings' );
 
 function mk_admin_theme_sanitize( $input ) {
     $defaults     = mk_admin_theme_defaults();
-    $bool_fields  = [ 'sync_elementor_gutenberg', 'sync_elementor_acf' ];
+    $bool_fields  = [ 'sync_elementor_gutenberg', 'sync_elementor_acf', 'gutenberg_title_only', 'sidebar_resize' ];
+    $text_fields  = [ 'gutenberg_title_only_types', 'sidebar_resize_types' ];
+    $url_fields   = [ 'sidebar_resize_logo' ];
     $output       = [];
 
     foreach ( $defaults as $key => $default ) {
@@ -142,6 +151,10 @@ function mk_admin_theme_sanitize( $input ) {
             $output[ $key ] = isset( $input[ $key ] ) ? absint( $input[ $key ] ) : absint( $default );
         } elseif ( in_array( $key, $bool_fields, true ) ) {
             $output[ $key ] = ! empty( $input[ $key ] ) ? '1' : '0';
+        } elseif ( in_array( $key, $text_fields, true ) ) {
+            $output[ $key ] = isset( $input[ $key ] ) ? sanitize_text_field( $input[ $key ] ) : $default;
+        } elseif ( in_array( $key, $url_fields, true ) ) {
+            $output[ $key ] = isset( $input[ $key ] ) ? esc_url_raw( $input[ $key ] ) : $default;
         } else {
             $output[ $key ] = isset( $input[ $key ] ) ? sanitize_hex_color( $input[ $key ] ) ?? $default : $default;
         }
@@ -151,10 +164,20 @@ function mk_admin_theme_sanitize( $input ) {
 
 // Colour picker asset
 function mk_admin_theme_admin_scripts( $hook ) {
+    // Enqueue jquery-ui-resizable on post edit screens when sidebar resize is enabled.
+    if ( $hook === 'post.php' || $hook === 'post-new.php' ) {
+        if ( mk_admin_theme_get( 'sidebar_resize' ) === '1' ) {
+            wp_enqueue_script( 'jquery-ui-resizable' );
+        }
+        return;
+    }
+
     if ( $hook !== 'settings_page_mk-admin-theme' ) {
         return;
     }
     wp_enqueue_style( 'wp-color-picker' );
+    // Media uploader for logo picker.
+    wp_enqueue_media();
     wp_enqueue_script(
         'mk-admin-theme-settings',
         MK_ADMIN_THEME_URL . 'settings.js',
@@ -274,6 +297,92 @@ function mk_admin_theme_settings_page() {
                             </label>
                             <p class="description">Richiede Elementor attivo. Se Elementor non è disponibile vengono usati i colori di fallback WordPress.</p>
                         </fieldset>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Gutenberg title-only mode -->
+            <h2>Gutenberg</h2>
+            <table class="form-table" role="presentation">
+                <tr>
+                    <th scope="row">Modalità solo titolo</th>
+                    <td>
+                        <label>
+                            <input
+                                type="checkbox"
+                                name="mk_admin_theme_options[gutenberg_title_only]"
+                                value="1"
+                                <?php checked( mk_admin_theme_get( 'gutenberg_title_only' ), '1' ); ?>
+                            />
+                            Disabilita tutti i blocchi e i pattern — mostra solo il campo titolo
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label for="mk_gutenberg_title_only_types">Post type</label>
+                    </th>
+                    <td>
+                        <input
+                            type="text"
+                            id="mk_gutenberg_title_only_types"
+                            name="mk_admin_theme_options[gutenberg_title_only_types]"
+                            value="<?php echo esc_attr( mk_admin_theme_get( 'gutenberg_title_only_types' ) ); ?>"
+                            class="regular-text"
+                        />
+                        <p class="description">Post type separati da virgola (es. <code>post, film, prodotto</code>). Attivo solo se la modalità è abilitata.</p>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Sidebar resize -->
+            <h2>Sidebar Gutenberg ridimensionabile</h2>
+            <table class="form-table" role="presentation">
+                <tr>
+                    <th scope="row">Abilita</th>
+                    <td>
+                        <label>
+                            <input
+                                type="checkbox"
+                                name="mk_admin_theme_options[sidebar_resize]"
+                                value="1"
+                                <?php checked( mk_admin_theme_get( 'sidebar_resize' ), '1' ); ?>
+                            />
+                            Rendi ridimensionabile la sidebar di Gutenberg (drag dal bordo sinistro)
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label for="mk_sidebar_resize_types">Post type</label>
+                    </th>
+                    <td>
+                        <input
+                            type="text"
+                            id="mk_sidebar_resize_types"
+                            name="mk_admin_theme_options[sidebar_resize_types]"
+                            value="<?php echo esc_attr( mk_admin_theme_get( 'sidebar_resize_types' ) ); ?>"
+                            class="regular-text"
+                        />
+                        <p class="description">Post type separati da virgola (es. <code>post, page, film</code>). Lascia vuoto per tutti.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label for="mk_sidebar_resize_logo">Logo overlay (durante il drag)</label>
+                    </th>
+                    <td>
+                        <input
+                            type="text"
+                            id="mk_sidebar_resize_logo"
+                            name="mk_admin_theme_options[sidebar_resize_logo]"
+                            value="<?php echo esc_attr( mk_admin_theme_get( 'sidebar_resize_logo' ) ); ?>"
+                            class="regular-text"
+                        />
+                        <button type="button" class="button mk-media-upload" data-target="#mk_sidebar_resize_logo">
+                            Scegli immagine
+                        </button>
+                        <p class="description">URL dell'immagine mostrata come overlay mentre si ridimensiona la sidebar. Lascia vuoto per sfondo bianco.</p>
                     </td>
                 </tr>
             </table>
@@ -455,6 +564,236 @@ function mk_admin_theme_elementor_sync_notice() {
     }
 }
 add_action( 'admin_notices', 'mk_admin_theme_elementor_sync_notice' );
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Gutenberg – resizable sidebar
+// ──────────────────────────────────────────────────────────────────────────────
+
+function mk_admin_theme_sidebar_resize_post_types() {
+    $raw = mk_admin_theme_get( 'sidebar_resize_types' );
+    return array_filter( array_map( 'trim', explode( ',', $raw ) ) );
+}
+
+function mk_admin_theme_sidebar_resize() {
+    if ( mk_admin_theme_get( 'sidebar_resize' ) !== '1' ) {
+        return;
+    }
+
+    $screen = get_current_screen();
+    if ( ! $screen || $screen->base !== 'post' ) {
+        return;
+    }
+
+    $types = mk_admin_theme_sidebar_resize_post_types();
+    if ( $types && ! in_array( $screen->post_type, $types, true ) ) {
+        return;
+    }
+
+    $logo = mk_admin_theme_get( 'sidebar_resize_logo' );
+    $logo_css = $logo
+        ? "background:url('" . esc_url( $logo ) . "') #ffffff;background-size:300px auto;background-position:center;background-repeat:no-repeat;"
+        : "background:#ffffff;";
+    ?>
+    <style id="mk-sidebar-resize-css">
+    .interface-interface-skeleton__sidebar .interface-complementary-area,
+    .interface-interface-skeleton__sidebar .interface-complementary-area__fill {
+        width: 100% !important;
+    }
+    .edit-post-layout:not(.is-sidebar-opened) .interface-interface-skeleton__sidebar,
+    .edit-site-layout:not(.is-sidebar-opened)  .interface-interface-skeleton__sidebar {
+        display: none;
+    }
+    .is-sidebar-opened .interface-interface-skeleton__sidebar { width: 40%; }
+
+    /* Drag overlay shown while resizing */
+    .interface-interface-skeleton__sidebar.ui-resizable-resizing {
+        position: relative !important;
+    }
+    .interface-interface-skeleton__sidebar.ui-resizable-resizing::after {
+        content: '';
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        <?php echo $logo_css; ?>
+    }
+
+    /* jquery-ui resizable handle */
+    .ui-resizable-handle { position: absolute; font-size: 0.1px; display: block; touch-action: none; }
+    .ui-resizable-w { cursor: w-resize; width: 8px; left: 0; top: 0; height: 100%; background: transparent; }
+    </style>
+
+    <script>
+    jQuery(window).ready(function () {
+        var STORAGE_KEY = 'mk_rs_sidebar_width';
+
+        function applyResize() {
+            var sidebar = jQuery('.interface-interface-skeleton__sidebar');
+            if ( ! sidebar.length ) { return; }
+
+            var saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) { sidebar.width(saved); }
+
+            if ( ! sidebar.hasClass('ui-resizable') ) {
+                sidebar.resizable({
+                    handles: 'w',
+                    resize: function (event, ui) {
+                        jQuery(this).css({ left: 0 });
+                        localStorage.setItem(STORAGE_KEY, jQuery(this).width());
+                    }
+                });
+            }
+
+            determineSidebarOpen();
+        }
+
+        function determineSidebarOpen() {
+            var open = false;
+            jQuery('.interface-pinned-items button').each(function () {
+                if (jQuery(this).hasClass('is-pressed')) { open = true; }
+            });
+            jQuery('.edit-post-layout, .edit-site-layout').toggleClass('is-sidebar-opened', open);
+        }
+
+        // Poll until Gutenberg has rendered the sidebar.
+        var poll = setInterval(function () {
+            if (jQuery('.interface-interface-skeleton__sidebar').length) {
+                clearInterval(poll);
+                applyResize();
+            }
+        }, 300);
+
+        jQuery('body').on('click', '.interface-pinned-items button', function () {
+            setTimeout(determineSidebarOpen, 50);
+        });
+
+        // Re-apply saved width after post save (Gutenberg re-renders).
+        wp.data.subscribe(function () {
+            var saving   = wp.data.select('core/editor').isSavingPost();
+            var auto     = wp.data.select('core/editor').isAutosavingPost();
+            if (saving && !auto) {
+                setTimeout(function () {
+                    var saved = localStorage.getItem(STORAGE_KEY);
+                    if (saved) {
+                        jQuery('.interface-interface-skeleton__sidebar').width(saved);
+                    }
+                }, 800);
+            }
+        });
+    });
+    </script>
+    <?php
+}
+add_action( 'admin_head', 'mk_admin_theme_sidebar_resize' );
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Gutenberg – title-only mode (disable all blocks + patterns)
+// ──────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Returns the list of post types that should use title-only mode.
+ * Parsed from the comma-separated option value.
+ *
+ * @return string[]
+ */
+function mk_admin_theme_title_only_post_types() {
+    $raw   = mk_admin_theme_get( 'gutenberg_title_only_types' );
+    $types = array_filter( array_map( 'trim', explode( ',', $raw ) ) );
+    return $types;
+}
+
+/**
+ * Disable all blocks for configured post types.
+ * Uses allowed_block_types_all (WP 5.8+) with fallback.
+ */
+function mk_admin_theme_disable_blocks( $allowed_blocks, $editor_context ) {
+    if ( mk_admin_theme_get( 'gutenberg_title_only' ) !== '1' ) {
+        return $allowed_blocks;
+    }
+
+    $post_type = $editor_context->post->post_type ?? '';
+    if ( ! $post_type || ! in_array( $post_type, mk_admin_theme_title_only_post_types(), true ) ) {
+        return $allowed_blocks;
+    }
+
+    return [];
+}
+add_filter( 'allowed_block_types_all', 'mk_admin_theme_disable_blocks', 10, 2 );
+
+/**
+ * Disable core block patterns and remote pattern fetching
+ * for the configured post types.
+ */
+function mk_admin_theme_disable_patterns() {
+    if ( mk_admin_theme_get( 'gutenberg_title_only' ) !== '1' ) {
+        return;
+    }
+
+    $screen = get_current_screen();
+    if ( ! $screen || $screen->base !== 'post' ) {
+        return;
+    }
+
+    if ( ! in_array( $screen->post_type, mk_admin_theme_title_only_post_types(), true ) ) {
+        return;
+    }
+
+    remove_theme_support( 'core-block-patterns' );
+    add_filter( 'should_load_remote_block_patterns', '__return_false' );
+}
+add_action( 'current_screen', 'mk_admin_theme_disable_patterns' );
+
+/**
+ * Inject CSS to collapse Gutenberg to a title-only view
+ * for configured post types.
+ */
+function mk_admin_theme_title_only_css() {
+    if ( mk_admin_theme_get( 'gutenberg_title_only' ) !== '1' ) {
+        return;
+    }
+
+    $screen = get_current_screen();
+    if ( ! $screen || $screen->base !== 'post' ) {
+        return;
+    }
+
+    if ( ! in_array( $screen->post_type, mk_admin_theme_title_only_post_types(), true ) ) {
+        return;
+    }
+    ?>
+    <style id="mk-title-only-css">
+    /* ── MK Admin Theme: title-only editor ── */
+
+    /* Collapse the canvas height so only the title shows */
+    :root :where(.editor-styles-wrapper)::after { height: unset !important; }
+    .editor-visual-editor.edit-post-visual-editor,
+    .editor-visual-editor { max-height: 150px; overflow: hidden; }
+
+    /* Title positioning */
+    .editor-visual-editor__post-title-wrapper,
+    .edit-post-visual-editor__post-title-wrapper { margin-top: 1px !important; }
+
+    /* Hide the block inserter (+) button */
+    .editor-document-tools__inserter-toggle { display: none !important; }
+
+    /* Hide the block appender inside the canvas */
+    .block-list-appender,
+    .block-editor-default-block-appender,
+    .block-editor-block-list__insertion-point { display: none !important; }
+
+    /* Hide the slash-command / pattern inserter popover */
+    .components-popover.block-editor-inserter__popover { display: none !important; }
+
+    /* Hide the "Block" tab in the sidebar inspector */
+    button#tabs-0-edit-post\/block { display: none !important; }
+
+    /* Hide Document tools: command palette, drag handle */
+    .editor-document-tools__command-center { display: none !important; }
+    </style>
+    <?php
+}
+add_action( 'admin_head', 'mk_admin_theme_title_only_css' );
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Dark / Light mode toggle

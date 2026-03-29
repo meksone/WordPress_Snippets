@@ -69,4 +69,20 @@
         styleTag.textContent = vars;
     }
 
+    // Media uploader for logo fields.
+    $(document).on('click', '.mk-media-upload', function (e) {
+        e.preventDefault();
+        var target = $($(this).data('target'));
+        var frame = wp.media({
+            title: 'Seleziona immagine',
+            button: { text: 'Usa questa immagine' },
+            multiple: false
+        });
+        frame.on('select', function () {
+            var attachment = frame.state().get('selection').first().toJSON();
+            target.val(attachment.url);
+        });
+        frame.open();
+    });
+
 }(jQuery));

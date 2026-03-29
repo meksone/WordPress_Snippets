@@ -1,5 +1,23 @@
 # Changelog – MK Admin Theme
 
+## [1.0.6] – 2026-03-29
+### Added
+- Resizable Gutenberg sidebar integration (drag from left edge, width persisted in `localStorage`)
+- New settings section "Sidebar Gutenberg ridimensionabile": on/off toggle, post type list, and logo overlay URL with media picker button
+- Logo shown as overlay on the sidebar while dragging; configurable via the WP media library
+- `jquery-ui-resizable` enqueued only on post edit screens when the feature is enabled
+- Polling strategy to attach resizable after Gutenberg finishes rendering; width restored after post save
+- `wp_enqueue_media()` added to settings page for the media picker button
+- Media uploader JS added to `settings.js`
+
+## [1.0.5] – 2026-03-29
+### Added
+- Gutenberg title-only mode: disable all blocks and patterns for configurable post types
+- New settings section "Gutenberg" with toggle + comma-separated post type field
+- `allowed_block_types_all` filter returns empty array for matching post types (WP 5.8+)
+- `remove_theme_support('core-block-patterns')` + `should_load_remote_block_patterns` filter to suppress all patterns
+- Admin CSS collapses Gutenberg canvas to title-only view; uses stable class selectors instead of fragile React-generated IDs
+
 ## [1.0.4] – 2026-03-29
 ### Fixed
 - Postbox headers in Gutenberg editor no longer flash grey on hover; WP/Gutenberg hover rule overriding our `background` is suppressed with `!important`
