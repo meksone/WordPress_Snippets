@@ -1,0 +1,614 @@
+/*
+ * MK Admin Theme – admin-style.css
+ * CSS custom properties are injected dynamically via PHP (mk_admin_theme_css_vars).
+ */
+
+/* ── Light mode defaults ── */
+:root {
+    --mk-bg-base:                  #f0f0f1;
+    --mk-bg-menu:                  #013162;
+    --mk-bg-menu-hover:            #01234a;
+    --mk-bg-menu-current:          #fdc513;
+    --mk-bg-menu-current-hover:    #e6b000;
+    --mk-text-menu:                #e8ecf0;
+    --mk-text-menu-current:        #013162;
+    --mk-color-primary:            #013162;
+    --mk-color-accent:             #fdc513;
+    --mk-color-accent-text:        #013162;
+    --mk-bg-topbar:                #013162;
+    --mk-text-topbar:              #e8ecf0;
+    --mk-color-link:               #013162;
+    --mk-btn-primary-bg:           #013162;
+    --mk-btn-primary-text:         #ffffff;
+    --mk-btn-secondary-bg:         #fdc513;
+    --mk-btn-secondary-text:       #013162;
+    --mk-radius:                   5px;
+    --mk-bg-content:               #ffffff;
+    --mk-bg-content-alt:           #f6f7f7;
+    --mk-text-content:             #1d2327;
+    --mk-text-content-muted:       #50575e;
+    --mk-border-color:             #dde0e4;
+    --mk-row-hover:                rgba(1, 49, 98, 0.06);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   DARK MODE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+body.mk-dark {
+    --mk-bg-base:                  #1a1d21;
+    --mk-bg-menu:                  #0d1117;
+    --mk-bg-menu-hover:            #1f2a38;
+    --mk-bg-menu-current:          #fdc513;
+    --mk-bg-menu-current-hover:    #e6b000;
+    --mk-text-menu:                #c8d0db;
+    --mk-text-menu-current:        #013162;
+    --mk-color-primary:            #4a90d9;
+    --mk-color-accent:             #fdc513;
+    --mk-color-accent-text:        #013162;
+    --mk-bg-topbar:                #0d1117;
+    --mk-text-topbar:              #c8d0db;
+    --mk-color-link:               #4a90d9;
+    --mk-btn-primary-bg:           #4a90d9;
+    --mk-btn-primary-text:         #ffffff;
+    --mk-btn-secondary-bg:         #fdc513;
+    --mk-btn-secondary-text:       #013162;
+    --mk-bg-content:               #22262b;
+    --mk-bg-content-alt:           #2a2f35;
+    --mk-text-content:             #e2e4e7;
+    --mk-text-content-muted:       #8c959f;
+    --mk-border-color:             #3a3f45;
+    --mk-row-hover:                rgba(255, 255, 255, 0.06);
+}
+
+/* Dark – page shells */
+body.mk-dark #wpwrap,
+body.mk-dark #wpcontent,
+body.mk-dark #wpbody,
+body.mk-dark #wpbody-content,
+body.mk-dark #wpbody-content > div {
+    background-color: var(--mk-bg-base) !important;
+}
+
+body.mk-dark #wpcontent {
+    background-color: var(--mk-bg-content) !important;
+}
+
+body.mk-dark .wrap,
+body.mk-dark #poststuff {
+    color: var(--mk-text-content) !important;
+}
+
+/* Dark – postboxes */
+body.mk-dark .postbox,
+body.mk-dark .metabox-holder .postbox,
+body.mk-dark #dashboard-widgets .postbox {
+    background-color: var(--mk-bg-content) !important;
+    border-color: var(--mk-border-color) !important;
+    color: var(--mk-text-content) !important;
+}
+
+body.mk-dark .postbox p,
+body.mk-dark .postbox span,
+body.mk-dark .postbox li,
+body.mk-dark .postbox td,
+body.mk-dark .postbox th {
+    color: var(--mk-text-content) !important;
+}
+
+/* Dark – tables: override WP hardcoded white/black */
+body.mk-dark table.wp-list-table,
+body.mk-dark .wp-list-table tbody,
+body.mk-dark .wp-list-table tbody tr,
+body.mk-dark .wp-list-table tbody tr td,
+body.mk-dark .wp-list-table tbody tr th,
+body.mk-dark .wp-list-table tfoot td,
+body.mk-dark .wp-list-table tfoot th,
+body.mk-dark #the-list td,
+body.mk-dark #the-list th {
+    background-color: var(--mk-bg-content) !important;
+    color: var(--mk-text-content) !important;
+    border-color: var(--mk-border-color) !important;
+}
+
+/* Alternate rows */
+body.mk-dark .wp-list-table tbody tr.alternate td,
+body.mk-dark .wp-list-table tbody tr.alternate th,
+body.mk-dark #the-list tr.alternate td,
+body.mk-dark #the-list tr.alternate th {
+    background-color: var(--mk-bg-content-alt) !important;
+}
+
+/* Row hover – subtle, no color flash */
+body.mk-dark .wp-list-table tbody tr:hover td,
+body.mk-dark .wp-list-table tbody tr:hover th,
+body.mk-dark #the-list tr:hover td,
+body.mk-dark #the-list tr:hover th {
+    background-color: rgba(255, 255, 255, 0.07) !important;
+    color: var(--mk-text-content) !important;
+}
+
+/* Row actions */
+body.mk-dark .row-actions span a,
+body.mk-dark .row-actions a {
+    color: var(--mk-color-link) !important;
+}
+
+/* Plugin list */
+body.mk-dark table.plugins tbody tr,
+body.mk-dark table.plugins tbody tr td {
+    background-color: var(--mk-bg-content) !important;
+    color: var(--mk-text-content) !important;
+    border-color: var(--mk-border-color) !important;
+}
+
+body.mk-dark table.plugins tbody tr.active,
+body.mk-dark table.plugins tbody tr.active td {
+    background-color: var(--mk-bg-content) !important;
+    color: var(--mk-text-content) !important;
+}
+
+body.mk-dark table.plugins tbody tr.inactive,
+body.mk-dark table.plugins tbody tr.inactive td {
+    background-color: var(--mk-bg-content-alt) !important;
+    color: var(--mk-text-content-muted) !important;
+}
+
+body.mk-dark table.plugins tbody tr:hover td,
+body.mk-dark table.plugins tbody tr.active:hover td,
+body.mk-dark table.plugins tbody tr.inactive:hover td {
+    background-color: rgba(255, 255, 255, 0.07) !important;
+    color: var(--mk-text-content) !important;
+}
+
+body.mk-dark table.plugins .plugin-title,
+body.mk-dark table.plugins .column-description p,
+body.mk-dark table.plugins .inactive .plugin-title strong {
+    color: var(--mk-text-content) !important;
+}
+
+/* Forms */
+body.mk-dark input[type="text"],
+body.mk-dark input[type="email"],
+body.mk-dark input[type="password"],
+body.mk-dark input[type="number"],
+body.mk-dark input[type="url"],
+body.mk-dark input[type="search"],
+body.mk-dark textarea,
+body.mk-dark select {
+    background-color: var(--mk-bg-content-alt) !important;
+    color: var(--mk-text-content) !important;
+    border-color: var(--mk-border-color) !important;
+}
+
+/* Notices */
+body.mk-dark .notice,
+body.mk-dark div.notice,
+body.mk-dark .updated,
+body.mk-dark .error {
+    background-color: var(--mk-bg-content-alt) !important;
+    color: var(--mk-text-content) !important;
+    border-color: var(--mk-border-color) !important;
+}
+
+body.mk-dark .notice p,
+body.mk-dark div.notice p {
+    color: var(--mk-text-content) !important;
+}
+
+/* Footer */
+body.mk-dark #wpfooter {
+    color: var(--mk-text-content-muted);
+    border-top-color: var(--mk-border-color);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   DARK/LIGHT TOGGLE – inside admin bar
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+#wp-admin-bar-mk-dark-mode > .ab-item {
+    display: flex !important;
+    align-items: center;
+    gap: 0;
+    padding: 0 8px !important;
+    cursor: pointer;
+}
+
+.mk-toggle-wrap {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    line-height: 32px;
+    height: 32px;
+}
+
+.mk-toggle-track {
+    width: 30px;
+    height: 16px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 8px;
+    position: relative;
+    flex-shrink: 0;
+    transition: background 0.2s;
+}
+
+.mk-toggle-thumb {
+    width: 10px;
+    height: 10px;
+    background: #e8ecf0;
+    border-radius: 50%;
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    transition: transform 0.2s, background 0.2s;
+}
+
+/* Active (dark on) state */
+#wp-admin-bar-mk-dark-mode.mk-is-dark .mk-toggle-track {
+    background: var(--mk-color-accent, #fdc513);
+}
+
+#wp-admin-bar-mk-dark-mode.mk-is-dark .mk-toggle-thumb {
+    transform: translateX(14px);
+    background: #013162;
+}
+
+.mk-toggle-label {
+    font-size: 11px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    color: var(--mk-text-topbar, #e8ecf0);
+}
+
+#wp-admin-bar-mk-dark-mode:hover > .ab-item {
+    background: var(--mk-bg-menu-hover, #01234a) !important;
+}
+
+/* ── Global font ── */
+html, body,
+#wpadminbar,
+#adminmenuback, #adminmenuwrap, #adminmenu,
+.wp-submenu,
+#wpwrap, .wrap,
+input, select, textarea, button {
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+
+/* ── Page background ── */
+#wpwrap, #wpcontent, #wpbody, #wpbody-content {
+    background-color: var(--mk-bg-base) !important;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ADMIN BAR (top toolbar)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+#wpadminbar {
+    background: var(--mk-bg-topbar) !important;
+    font-family: 'Poppins', sans-serif !important;
+}
+
+#wpadminbar *, #wpadminbar .ab-item, #wpadminbar a {
+    color: var(--mk-text-topbar) !important;
+}
+
+#wpadminbar .ab-top-menu > li > .ab-item:hover,
+#wpadminbar .ab-top-menu > li.hover > .ab-item {
+    background: var(--mk-bg-menu-hover) !important;
+    color: var(--mk-color-accent) !important;
+}
+
+#wpadminbar .menupop .ab-sub-wrapper {
+    background: var(--mk-bg-menu) !important;
+    border-radius: 0 0 var(--mk-radius) var(--mk-radius);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SIDEBAR MENU
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+#adminmenuback, #adminmenuwrap {
+    background: var(--mk-bg-menu) !important;
+}
+
+#adminmenu {
+    background: var(--mk-bg-menu) !important;
+}
+
+#adminmenu a, #adminmenu .wp-menu-name {
+    color: var(--mk-text-menu) !important;
+    font-family: 'Poppins', sans-serif !important;
+    font-size: 13px;
+    font-weight: 400;
+}
+
+/* Hover – non-active */
+#adminmenu li:hover > a,
+#adminmenu li > a:focus,
+#adminmenu .wp-submenu a:hover,
+#adminmenu .wp-submenu a:focus {
+    background-color: var(--mk-bg-menu-hover) !important;
+    color: var(--mk-color-accent) !important;
+    border-radius: var(--mk-radius);
+}
+
+/* Active top-level */
+#adminmenu .current > a,
+#adminmenu .wp-has-current-submenu > a,
+#adminmenu li.current a.menu-top,
+#adminmenu .wp-menu-arrow,
+#adminmenu .wp-has-current-submenu .wp-submenu .wp-submenu-head {
+    background-color: var(--mk-bg-menu-current) !important;
+    color: var(--mk-text-menu-current) !important;
+    font-weight: 600 !important;
+    border-radius: var(--mk-radius);
+}
+
+/* Active top-level hover */
+#adminmenu .current > a:hover,
+#adminmenu .wp-has-current-submenu > a:hover,
+#adminmenu li.current a.menu-top:hover {
+    background-color: var(--mk-bg-menu-current-hover) !important;
+    color: var(--mk-text-menu-current) !important;
+}
+
+/* Sub-menu panel */
+#adminmenu .wp-submenu {
+    background: var(--mk-bg-menu) !important;
+    border-radius: 0 0 var(--mk-radius) var(--mk-radius);
+}
+
+#adminmenu .wp-submenu a {
+    color: var(--mk-text-menu) !important;
+}
+
+/* Active sub-menu item */
+#adminmenu .wp-submenu li.current a {
+    color: var(--mk-text-menu-current) !important;
+    font-weight: 600;
+}
+
+/* Active sub-menu item hover */
+#adminmenu .wp-submenu li.current a:hover {
+    background-color: var(--mk-bg-menu-current-hover) !important;
+    color: var(--mk-text-menu-current) !important;
+    border-radius: var(--mk-radius);
+}
+
+/* Menu icons */
+#adminmenu .menu-icon-generic div.wp-menu-image:before,
+#adminmenu .wp-menu-image:before {
+    color: var(--mk-text-menu) !important;
+}
+
+#adminmenu .current > a .wp-menu-image:before,
+#adminmenu .wp-has-current-submenu > a .wp-menu-image:before {
+    color: var(--mk-text-menu-current) !important;
+}
+
+#adminmenu li.wp-menu-separator {
+    background: rgba(255,255,255,0.07) !important;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CONTENT AREA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.wrap h1, .wrap h2 {
+    color: var(--mk-color-primary);
+    font-weight: 600;
+}
+
+.wrap a, #wpcontent a {
+    color: var(--mk-color-link);
+}
+
+.wrap a:hover, #wpcontent a:hover {
+    color: var(--mk-color-accent);
+    text-decoration: underline;
+}
+
+/* Postboxes */
+.postbox, .metabox-holder .postbox {
+    border: 1px solid #dde0e4;
+    border-radius: var(--mk-radius);
+    overflow: hidden;
+}
+
+.postbox .postbox-header, .postbox h2.hndle {
+    background: var(--mk-color-primary);
+    color: #fff;
+    border-radius: var(--mk-radius) var(--mk-radius) 0 0;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.postbox .postbox-header .hndle span,
+.postbox h2.hndle span {
+    color: #fff !important;
+}
+
+/* Notices */
+.notice, div.notice, .updated, .error {
+    border-radius: var(--mk-radius);
+    border-left-width: 4px;
+}
+
+.notice-success, .updated:not(.notice-warning) { border-left-color: #00a32a; }
+.notice-info    { border-left-color: var(--mk-color-primary); }
+.notice-warning { border-left-color: var(--mk-color-accent); }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   BUTTONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.button-primary,
+input[type="submit"].button-primary,
+a.button-primary {
+    background: var(--mk-btn-primary-bg) !important;
+    color: var(--mk-btn-primary-text) !important;
+    border-color: var(--mk-btn-primary-bg) !important;
+    border-radius: var(--mk-radius) !important;
+    font-family: 'Poppins', sans-serif !important;
+    font-weight: 500 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+.button-primary:hover, .button-primary:focus {
+    background: var(--mk-bg-menu-hover) !important;
+    border-color: var(--mk-bg-menu-hover) !important;
+    color: #fff !important;
+}
+
+.button-secondary, .button,
+input[type="submit"]:not(.button-primary),
+a.button:not(.button-primary) {
+    border-radius: var(--mk-radius) !important;
+    font-family: 'Poppins', sans-serif !important;
+    font-weight: 400 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+.button.button-accent {
+    background: var(--mk-btn-secondary-bg) !important;
+    color: var(--mk-btn-secondary-text) !important;
+    border-color: var(--mk-btn-secondary-bg) !important;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   FORM ELEMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+input[type="text"], input[type="email"], input[type="password"],
+input[type="number"], input[type="url"], input[type="search"],
+textarea, select {
+    border-radius: var(--mk-radius) !important;
+    border: 1px solid #c3c4c7;
+    font-family: 'Poppins', sans-serif !important;
+    font-size: 13px;
+}
+
+input[type="text"]:focus, input[type="email"]:focus,
+input[type="password"]:focus, input[type="number"]:focus,
+textarea:focus, select:focus {
+    border-color: var(--mk-color-primary) !important;
+    box-shadow: 0 0 0 1px var(--mk-color-primary) !important;
+    outline: none;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   TABLES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.wp-list-table {
+    border-radius: var(--mk-radius);
+    overflow: hidden;
+}
+
+.wp-list-table thead th, .wp-list-table tfoot th {
+    background-color: var(--mk-color-primary) !important;
+    color: #fff !important;
+}
+
+.wp-list-table thead th a, .wp-list-table tfoot th a {
+    color: #fff !important;
+}
+
+/* Light mode row hover */
+.wp-list-table tbody tr:hover td,
+.wp-list-table tbody tr:hover th {
+    background-color: var(--mk-row-hover) !important;
+}
+
+.row-actions span a { color: var(--mk-color-primary) !important; }
+.row-actions span.trash a { color: #b32d2e !important; }
+
+.tablenav .bulkactions select,
+.tablenav .bulkactions input {
+    border-radius: var(--mk-radius) !important;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   DASHBOARD WIDGETS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+#dashboard-widgets .postbox { border-radius: var(--mk-radius); }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SCREEN OPTIONS / HELP TABS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+#screen-options-wrap, #contextual-help-wrap {
+    border-radius: 0 0 var(--mk-radius) var(--mk-radius);
+}
+
+#contextual-help-link-wrap a.active, .contextual-help-tabs a.active {
+    background: var(--mk-color-primary) !important;
+    color: #fff !important;
+    border-radius: var(--mk-radius) var(--mk-radius) 0 0;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   PAGINATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.tablenav-pages a, .tablenav-pages .current-page {
+    border-radius: var(--mk-radius) !important;
+}
+
+.tablenav-pages a:hover {
+    border-color: var(--mk-color-primary) !important;
+    color: var(--mk-color-primary) !important;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   LOGIN PAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+body.login {
+    background-color: var(--mk-bg-base) !important;
+    font-family: 'Poppins', sans-serif !important;
+}
+
+#loginform, #lostpasswordform, #registerform {
+    border-radius: var(--mk-radius);
+    box-shadow: 0 2px 10px rgba(1, 49, 98, 0.12);
+}
+
+body.login #wp-submit {
+    background: var(--mk-btn-primary-bg) !important;
+    border-color: var(--mk-btn-primary-bg) !important;
+    border-radius: var(--mk-radius) !important;
+    color: var(--mk-btn-primary-text) !important;
+    font-family: 'Poppins', sans-serif !important;
+    font-weight: 600;
+    text-shadow: none !important;
+    box-shadow: none !important;
+    width: 100%;
+    padding: 10px 0;
+}
+
+body.login #wp-submit:hover {
+    background: var(--mk-bg-menu-hover) !important;
+    border-color: var(--mk-bg-menu-hover) !important;
+}
+
+body.login .message, body.login .success, body.login .error {
+    border-radius: var(--mk-radius);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   GUTENBERG
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.editor-post-publish-button__button,
+.components-button.is-primary {
+    background: var(--mk-btn-primary-bg) !important;
+    color: var(--mk-btn-primary-text) !important;
+    border-radius: var(--mk-radius) !important;
+    font-family: 'Poppins', sans-serif !important;
+}
+
+.components-button.is-secondary {
+    border-radius: var(--mk-radius) !important;
+    font-family: 'Poppins', sans-serif !important;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   MISC
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+#wpfooter       { color: #666; font-size: 12px; }
+#tiptip_holder .tiptip_content { border-radius: var(--mk-radius); }
+.media-modal, .media-frame { border-radius: var(--mk-radius) !important; }
+#collapse-button { color: var(--mk-text-menu) !important; }
+#collapse-menu   { background: var(--mk-bg-menu) !important; }
