@@ -1,5 +1,41 @@
 # Changelog – MK Admin Theme
 
+## [1.0.9] – 2026-03-29
+### Added
+- Full i18n support: `Text Domain: mk-admin-theme`, `load_plugin_textdomain()`, all visible strings wrapped in `__()` / `esc_html_e()` / `esc_html__()` — ready for Poedit
+- `custom_css` free-text column in ACF preset table for per-class manual CSS overrides
+- CSS preview in `settings.js` now includes free-form custom CSS block per preset
+
+### Changed
+- All `border-radius` in ACF preset generation and base overrides now apply to all corners (removed asymmetric `6px 6px 0 0` variant)
+- Color picker "Select color" label replaced with 🎨 emoji via `wp_color_picker` `l10n` option (localizable via Poedit)
+- ACF preset table wrapped in `<div class="mk-acf-table-wrap">` with `overflow-x: auto` for responsive horizontal scroll
+- Table uses `min-width: 900px` and per-column `width` constraints for compact layout
+- `settings.js` refactored: shared picker options, i18n via `mkAdminTheme.i18n`, custom CSS textarea and radius input wired to live preview
+- `wp_localize_script` now passes `i18n` object and `isAcfPage` flag
+- Dark mode toggle labels (`Dark` / `Light`) localizable via `wp_json_encode(__(...))` in inline JS
+- `mk_admin_theme_admin_scripts` moved to a single `$is_theme_page` / `$is_acf_page` check
+
+## [1.0.8] – 2026-03-29
+### Changed
+- ACF preset columns: `header_bg` split into two independent pickers — `.acf-label BG` (wrapper div) and `label BG` (inner `label` element) — each targeted separately in generated CSS
+- All hardcoded `border-radius: 6px` in base overrides and preset generation replaced with `var(--mk-acf-radius)`
+- `--mk-acf-radius` injected as `:root` CSS variable on every page load (always, not only when base overrides are on)
+### Added
+- Global border radius field (`mk_acf_styles_radius`, default 6) in the base settings table; applies uniformly to `.acf-label`, `label`, `.acf-field`, `p.description`, and field containers
+- Live CSS preview in `settings.js` now reads the radius input and includes it in the `:root` block
+
+## [1.0.7] – 2026-03-29
+### Added
+- New subpage **Settings > ACF Custom Styles** (`mk-acf-styles`)
+- Dynamic preset builder: add/remove CSS classes with per-class controls for header background, field background, title color, label color, description color
+- Generated CSS injected via `acf/input/admin_head` — paste the class name into ACF's "CSS Class" field
+- Toggle to enable base global ACF style overrides (field borders, label styling, description background, repeater icon sizing)
+- Live CSS preview textarea updates in real-time as colors are picked or slug is typed
+- Slug preview shows `.classname` below the input as you type
+- Color pickers on the ACF styles page also use the Elementor palette swatches (if available)
+- `wp_enqueue_media()` and `wp-color-picker` now shared between both settings pages
+
 ## [1.0.6] – 2026-03-29
 ### Added
 - Resizable Gutenberg sidebar integration (drag from left edge, width persisted in `localStorage`)

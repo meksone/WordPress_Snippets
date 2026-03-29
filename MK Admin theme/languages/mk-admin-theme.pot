@@ -1,0 +1,354 @@
+# Copyright (C) 2026 Manuel Serrenti (meksONE)
+# This file is distributed under the GPL-2.0+.
+msgid ""
+msgstr ""
+"Project-Id-Version: MK Admin Theme 1.0.9\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/mk-admin-theme\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-03-29T16:22:13+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: mk-admin-theme\n"
+
+#. Plugin Name of the plugin
+#: mk-admin-theme.php
+msgid "MK Admin Theme"
+msgstr ""
+
+#. Plugin URI of the plugin
+#. Author URI of the plugin
+#: mk-admin-theme.php
+msgid "https://meksone.com"
+msgstr ""
+
+#. Description of the plugin
+#: mk-admin-theme.php
+msgid "Custom WordPress admin theme with Poppins font, rounded corners, and a blue/yellow palette. Fully customizable via Settings > Impostazioni tema admin."
+msgstr ""
+
+#. Author of the plugin
+#: mk-admin-theme.php
+msgid "Manuel Serrenti (meksONE)"
+msgstr ""
+
+#: mk-admin-theme.php:131
+#: mk-admin-theme.php:132
+#: mk-admin-theme.php:262
+msgid "Impostazioni tema admin"
+msgstr ""
+
+#: mk-admin-theme.php:214
+msgid "🎨"
+msgstr ""
+
+#: mk-admin-theme.php:215
+msgid "Seleziona immagine"
+msgstr ""
+
+#: mk-admin-theme.php:216
+msgid "Usa questa immagine"
+msgstr ""
+
+#: mk-admin-theme.php:217
+msgid "Nessuna classe."
+msgstr ""
+
+#: mk-admin-theme.php:218
+#: mk-admin-theme.php:1210
+msgid "Light"
+msgstr ""
+
+#: mk-admin-theme.php:219
+#: mk-admin-theme.php:1185
+#: mk-admin-theme.php:1211
+msgid "Dark"
+msgstr ""
+
+#: mk-admin-theme.php:234
+msgid "Generali"
+msgstr ""
+
+#: mk-admin-theme.php:235
+msgid "Sfondo pagina (grigio base)"
+msgstr ""
+
+#: mk-admin-theme.php:236
+msgid "Colore primario (blu)"
+msgstr ""
+
+#: mk-admin-theme.php:237
+msgid "Colore accento (giallo)"
+msgstr ""
+
+#: mk-admin-theme.php:238
+msgid "Testo su sfondo accento"
+msgstr ""
+
+#: mk-admin-theme.php:239
+msgid "Colore link (area contenuto)"
+msgstr ""
+
+#: mk-admin-theme.php:241
+msgid "Barra superiore (Toolbar)"
+msgstr ""
+
+#: mk-admin-theme.php:242
+msgid "Sfondo toolbar"
+msgstr ""
+
+#: mk-admin-theme.php:243
+msgid "Testo toolbar"
+msgstr ""
+
+#: mk-admin-theme.php:245
+msgid "Menu laterale"
+msgstr ""
+
+#: mk-admin-theme.php:246
+msgid "Sfondo menu"
+msgstr ""
+
+#: mk-admin-theme.php:247
+msgid "Hover voce menu"
+msgstr ""
+
+#: mk-admin-theme.php:248
+msgid "Sfondo voce attiva"
+msgstr ""
+
+#: mk-admin-theme.php:249
+msgid "Hover voce attiva"
+msgstr ""
+
+#: mk-admin-theme.php:250
+msgid "Testo menu"
+msgstr ""
+
+#: mk-admin-theme.php:251
+msgid "Testo voce attiva"
+msgstr ""
+
+#: mk-admin-theme.php:253
+msgid "Bottoni"
+msgstr ""
+
+#: mk-admin-theme.php:254
+msgid "Bottone primario – sfondo"
+msgstr ""
+
+#: mk-admin-theme.php:255
+msgid "Bottone primario – testo"
+msgstr ""
+
+#: mk-admin-theme.php:256
+msgid "Bottone secondario – sfondo"
+msgstr ""
+
+#: mk-admin-theme.php:257
+msgid "Bottone secondario – testo"
+msgstr ""
+
+#: mk-admin-theme.php:263
+msgid "Personalizza colori e stile della dashboard WordPress."
+msgstr ""
+
+#: mk-admin-theme.php:292
+msgid "Integrazioni"
+msgstr ""
+
+#: mk-admin-theme.php:295
+msgid "Sincronizzazione palette Elementor"
+msgstr ""
+
+#: mk-admin-theme.php:305
+#: mk-admin-theme.php:315
+#, php-format
+msgid "Sincronizza palette Elementor → %s"
+msgstr ""
+
+#: mk-admin-theme.php:317
+msgid "Richiede Elementor attivo. Se Elementor non è disponibile vengono usati i colori di fallback WordPress."
+msgstr ""
+
+#: mk-admin-theme.php:324
+msgid "Gutenberg"
+msgstr ""
+
+#: mk-admin-theme.php:327
+msgid "Modalità solo titolo"
+msgstr ""
+
+#: mk-admin-theme.php:336
+msgid "Disabilita tutti i blocchi e i pattern — mostra solo il campo titolo"
+msgstr ""
+
+#: mk-admin-theme.php:342
+#: mk-admin-theme.php:376
+msgid "Post type"
+msgstr ""
+
+#: mk-admin-theme.php:352
+#, php-format
+msgid "Post type separati da virgola (es. %s). Attivo solo se la modalità è abilitata."
+msgstr ""
+
+#: mk-admin-theme.php:358
+msgid "Sidebar Gutenberg ridimensionabile"
+msgstr ""
+
+#: mk-admin-theme.php:361
+msgid "Abilita"
+msgstr ""
+
+#: mk-admin-theme.php:370
+msgid "Rendi ridimensionabile la sidebar di Gutenberg (drag dal bordo sinistro)"
+msgstr ""
+
+#: mk-admin-theme.php:386
+#, php-format
+msgid "Post type separati da virgola (es. %s). Lascia vuoto per tutti."
+msgstr ""
+
+#: mk-admin-theme.php:391
+msgid "Logo overlay (durante il drag)"
+msgstr ""
+
+#: mk-admin-theme.php:402
+msgid "Scegli immagine"
+msgstr ""
+
+#: mk-admin-theme.php:404
+msgid "URL dell'immagine mostrata come overlay mentre si ridimensiona la sidebar. Lascia vuoto per sfondo bianco."
+msgstr ""
+
+#: mk-admin-theme.php:410
+msgid "Bordi"
+msgstr ""
+
+#: mk-admin-theme.php:414
+msgid "Raggio bordo (px)"
+msgstr ""
+
+#: mk-admin-theme.php:425
+msgid "Valore predefinito: 5. Imposta 0 per angoli netti."
+msgstr ""
+
+#: mk-admin-theme.php:431
+msgid "Salva impostazioni"
+msgstr ""
+
+#: mk-admin-theme.php:435
+msgid "Ripristinare i valori predefiniti?"
+msgstr ""
+
+#: mk-admin-theme.php:436
+msgid "Ripristina predefiniti"
+msgstr ""
+
+#: mk-admin-theme.php:464
+#: mk-admin-theme.php:465
+#: mk-admin-theme.php:657
+msgid "ACF Custom Styles"
+msgstr ""
+
+#: mk-admin-theme.php:639
+msgid "Field BG"
+msgstr ""
+
+#: mk-admin-theme.php:640
+msgid "Colore titolo"
+msgstr ""
+
+#: mk-admin-theme.php:641
+msgid "Colore label"
+msgstr ""
+
+#: mk-admin-theme.php:642
+msgid "Colore descrizione"
+msgstr ""
+
+#: mk-admin-theme.php:658
+#, php-format
+msgid "Crea classi CSS da incollare nel campo %s dei gruppi e dei campi ACF. Ogni classe controlla sfondo, colori del testo e della descrizione."
+msgstr ""
+
+#: mk-admin-theme.php:663
+msgid "Stili base globali"
+msgstr ""
+
+#: mk-admin-theme.php:666
+msgid "Attiva override globali ACF"
+msgstr ""
+
+#: mk-admin-theme.php:670
+msgid "Applica miglioramenti visivi di base a tutti i campi ACF"
+msgstr ""
+
+#: mk-admin-theme.php:675
+msgid "Raggio bordo globale (px)"
+msgstr ""
+
+#: mk-admin-theme.php:686
+#, php-format
+msgid "Applicato come %1$s a tutti gli elementi ACF: campi, label wrapper (%2$s), label elemento (%3$s), descrizioni e field container. Default: 6."
+msgstr ""
+
+#: mk-admin-theme.php:692
+msgid "Classi personalizzate"
+msgstr ""
+
+#: mk-admin-theme.php:694
+#, php-format
+msgid "Le classi generate vengono iniettate nell'editor ACF. Copia il nome classe e incollalo nel campo %s del gruppo o del campo in ACF."
+msgstr ""
+
+#: mk-admin-theme.php:701
+msgid "Nome classe"
+msgstr ""
+
+#: mk-admin-theme.php:705
+msgid "CSS libero"
+msgstr ""
+
+#: mk-admin-theme.php:713
+msgid "Nessuna classe. Clicca \"+ Aggiungi classe\" per iniziare."
+msgstr ""
+
+#: mk-admin-theme.php:723
+#: mk-admin-theme.php:765
+msgid "nome-classe"
+msgstr ""
+
+#: mk-admin-theme.php:749
+#: mk-admin-theme.php:791
+msgid "Rimuovi"
+msgstr ""
+
+#: mk-admin-theme.php:797
+msgid "+ Aggiungi classe"
+msgstr ""
+
+#: mk-admin-theme.php:800
+msgid "Salva stili"
+msgstr ""
+
+#: mk-admin-theme.php:805
+msgid "CSS generato"
+msgstr ""
+
+#: mk-admin-theme.php:806
+msgid "Copia e usa questi selettori come riferimento. Vengono iniettati automaticamente nell'editor ACF."
+msgstr ""
+
+#: mk-admin-theme.php:935
+#, php-format
+msgid "Sincronizzazione Elementor attiva ma impossibile leggere i colori: %s"
+msgstr ""
+
+#: mk-admin-theme.php:1183
+msgid "Dark / Light mode"
+msgstr ""
