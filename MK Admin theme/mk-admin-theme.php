@@ -3,7 +3,7 @@
  * Plugin Name: MK Admin Theme
  * Plugin URI:  https://meksone.com
  * Description: Custom WordPress admin theme with Poppins font, rounded corners, and a blue/yellow palette. Fully customizable via Settings > Impostazioni tema admin.
- * Version:     1.0.9
+ * Version:     1.0.11
  * Author:      Manuel Serrenti (meksONE)
  * Author URI:  https://meksone.com
  * License:     GPL-2.0+
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'MK_ADMIN_THEME_VERSION', '1.0.9' );
+define( 'MK_ADMIN_THEME_VERSION', '1.0.11' );
 define( 'MK_ADMIN_THEME_URL',     plugin_dir_url( __FILE__ ) );
 define( 'MK_ADMIN_THEME_PATH',    plugin_dir_path( __FILE__ ) );
 
@@ -609,9 +609,9 @@ td.acf-field.acf-field-text { padding: 4px; }
             echo "$s .acf-field p.description {\n    background-color: {$p['acf_label_bg']} !important;\n    border-radius: var(--mk-acf-radius);\n}\n";
         }
 
-        // Free-form custom CSS appended as-is under the same class scope.
+        // Free-form custom CSS appended properties inside the current class scope.
         if ( ! empty( $p['custom_css'] ) ) {
-            echo "/* custom: $s */\n" . $p['custom_css'] . "\n";
+            echo "$s {\n    " . trim( $p['custom_css'] ) . "\n}\n";
         }
 
         echo "\n";
@@ -741,7 +741,7 @@ function mk_acf_styles_page() {
                                     name="mk_acf_styles_presets[<?php echo $i; ?>][custom_css]"
                                     rows="3"
                                     class="widefat code mk-acf-custom-css"
-                                    placeholder=".my-class { color: red; }"
+                                    placeholder="color: red; padding: 10px;"
                                     style="font-size:11px;font-family:monospace;resize:vertical;"
                                 ><?php echo esc_textarea( $p['custom_css'] ?? '' ); ?></textarea>
                             </td>
@@ -783,7 +783,7 @@ function mk_acf_styles_page() {
                             name="mk_acf_styles_presets[__INDEX__][custom_css]"
                             rows="3"
                             class="widefat code mk-acf-custom-css"
-                            placeholder=".my-class { color: red; }"
+                            placeholder="color: red; padding: 10px;"
                             style="font-size:11px;font-family:monospace;resize:vertical;"
                         ></textarea>
                     </td>

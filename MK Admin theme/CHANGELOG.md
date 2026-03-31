@@ -1,5 +1,14 @@
 # Changelog – MK Admin Theme
 
+## [1.0.11] – 2026-03-29
+### Fixed
+- ACF Custom Styles: Fixed the real-time CSS preview in `settings.js` on the options page so the `custom_css` field is properly wrapped in the class selector, matching the actual generated output.
+
+## [1.0.10] – 2026-03-29
+### Changed
+- ACF Custom Styles: The `custom_css` free text field properties are now automatically wrapped inside the current class selector (`.classname { ... }`) to avoid generating invalid un-scoped CSS globally.
+- ACF Custom Styles: Updated the placeholder in the `custom_css` field to show an example of CSS properties instead of a full CSS rule.
+
 ## [1.0.9] – 2026-03-29
 ### Added
 - Full i18n support: `Text Domain: mk-admin-theme`, `load_plugin_textdomain()`, all visible strings wrapped in `__()` / `esc_html_e()` / `esc_html__()` — ready for Poedit
