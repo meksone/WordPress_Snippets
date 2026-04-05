@@ -1,5 +1,13 @@
 # Changelog – MK Admin Theme
 
+## [1.0.18] – 2026-04-05
+### Fixed
+- ACF toolbar background: moved output to `admin_footer` (body end) so the `<style>` block physically appears after all `<head>` stylesheets; added `body.acf-admin-page` specificity prefix to match/beat ACF PRO's own two-class selectors
+
+## [1.0.17] – 2026-04-05
+### Added
+- ACF admin toolbar (`.acf-admin-toolbar`) now inherits theme colors: background from `--mk-bg-topbar`, tab text from `--mk-text-topbar`, active tab uses accent color, hover uses menu hover; dropdown panel also themed; injected via `acf/input/admin_head` and `acf/field_group/admin_head`
+
 ## [1.0.16] – 2026-04-05
 ### Fixed
 - Postbox header on ACF pages: switched from WordPress `admin_head` (which still loses to ACF's own inline styles) to ACF's dedicated hooks `acf/input/admin_head` and `acf/field_group/admin_head`, which fire after ACF outputs its own CSS

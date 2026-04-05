@@ -3,7 +3,7 @@
  * Plugin Name: MK Admin Theme
  * Plugin URI:  https://meksone.com
  * Description: Custom WordPress admin theme with Poppins font, rounded corners, and a blue/yellow palette. Fully customizable via Settings > Impostazioni tema admin.
- * Version:     1.0.16
+ * Version:     1.0.18
  * Author:      Manuel Serrenti (meksONE)
  * Author URI:  https://meksone.com
  * License:     GPL-2.0+
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'MK_ADMIN_THEME_VERSION', '1.0.16' );
+define( 'MK_ADMIN_THEME_VERSION', '1.0.18' );
 define( 'MK_ADMIN_THEME_URL',     plugin_dir_url( __FILE__ ) );
 define( 'MK_ADMIN_THEME_PATH',    plugin_dir_path( __FILE__ ) );
 
@@ -190,6 +190,66 @@ add_action( 'acf/input/admin_head', function () { mk_admin_theme_postbox_css_blo
 
 // ACF field group editor — separate hook, same approach.
 add_action( 'acf/field_group/admin_head', function () { mk_admin_theme_postbox_css_block( true ); } );
+
+// ACF admin toolbar override.
+// Output in admin_footer (body end) — runs after all <head> stylesheets
+// and after any ACF inline styles injected via admin_head hooks.
+function mk_admin_theme_acf_toolbar_css() {
+    if ( ! ( function_exists( 'get_current_screen' ) ) ) {
+        return;
+    }
+    $screen = get_current_screen();
+    if ( ! $screen || strpos( $screen->id, 'acf' ) === false ) {
+        return;
+    }
+
+    $topbar_bg  = esc_attr( mk_admin_theme_get( 'bg_topbar' )         ?: '#013162' );
+    $topbar_txt = esc_attr( mk_admin_theme_get( 'text_topbar' )       ?: '#e8ecf0' );
+    $accent     = esc_attr( mk_admin_theme_get( 'color_accent' )      ?: '#fdc513' );
+    $accent_txt = esc_attr( mk_admin_theme_get( 'color_accent_text' ) ?: '#013162' );
+    $menu_hover = esc_attr( mk_admin_theme_get( 'bg_menu_hover' )     ?: '#01234a' );
+    ?>
+    <style id="mk-acf-toolbar-override">
+    /* Two-class prefix to beat .acf-admin-page .acf-admin-toolbar specificity */
+    .acf-admin-page .acf-admin-toolbar,
+    body.acf-admin-page .acf-admin-toolbar {
+        background: <?php echo $topbar_bg; ?> !important;
+        border-bottom-color: <?php echo $menu_hover; ?> !important;
+    }
+    .acf-admin-page .acf-admin-toolbar .acf-nav-wrap h2 {
+        color: <?php echo $topbar_txt; ?> !important;
+    }
+    .acf-admin-page .acf-admin-toolbar .acf-tab {
+        color: <?php echo $topbar_txt; ?> !important;
+        background: transparent !important;
+        border-color: transparent !important;
+    }
+    .acf-admin-page .acf-admin-toolbar .acf-tab:hover {
+        color: <?php echo $accent; ?> !important;
+        background: <?php echo $menu_hover; ?> !important;
+    }
+    .acf-admin-page .acf-admin-toolbar .acf-tab.is-active {
+        color: <?php echo $accent_txt; ?> !important;
+        background: <?php echo $accent; ?> !important;
+        border-color: <?php echo $accent; ?> !important;
+    }
+    /* "Altro" dropdown */
+    .acf-admin-page .acf-admin-toolbar .acf-more > ul {
+        background: <?php echo $topbar_bg; ?> !important;
+        border-color: <?php echo $menu_hover; ?> !important;
+    }
+    .acf-admin-page .acf-admin-toolbar .acf-more > ul .acf-tab {
+        color: <?php echo $topbar_txt; ?> !important;
+    }
+    .acf-admin-page .acf-admin-toolbar .acf-more > ul .acf-tab:hover {
+        color: <?php echo $accent; ?> !important;
+        background: <?php echo $menu_hover; ?> !important;
+    }
+    </style>
+    <?php
+}
+// admin_footer runs in <body> — after every stylesheet in <head>.
+add_action( 'admin_footer', 'mk_admin_theme_acf_toolbar_css', 9999 );
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Settings page
