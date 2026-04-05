@@ -1,5 +1,35 @@
 # Changelog – MK Admin Theme
 
+## [1.0.16] – 2026-04-05
+### Fixed
+- Postbox header on ACF pages: switched from WordPress `admin_head` (which still loses to ACF's own inline styles) to ACF's dedicated hooks `acf/input/admin_head` and `acf/field_group/admin_head`, which fire after ACF outputs its own CSS
+- On ACF pages the override CSS now uses `.acf-admin-page #poststuff` specificity prefix to match ACF's own selector weight, ensuring our `!important` declarations beat ACF's `color: #344054 !important` on inner `h2`/`h3` elements
+
+## [1.0.15] – 2026-04-05
+### Fixed
+- Postbox header text color now explicitly targets inner `h2`/`h3`/`.hndle`/`span` elements — ACF sets `color: #344054 !important` directly on the `h2` inside `.postbox-header`; a `color` on the parent container can never override `!important` on a child, so explicit child selectors with `!important` are required
+- Inner `h2`/`h3` padding and margin reset to `0` to avoid ACF's per-element padding rules shifting the layout
+
+## [1.0.14] – 2026-04-05
+### Fixed
+- Postbox header: moved styling to `admin_head` at priority 9999 — guarantees the `<style>` block is injected after all enqueued stylesheets (including ACF's), fixing the header colour on ACF field group editor and other plugin screens where specificity/load-order battles couldn't be won from an enqueued stylesheet
+- Admin bar: removed `#wpadminbar *` wildcard from the text-color rule — it was forcing all elements inside the admin bar (including JAMP popup notes) to the topbar text colour; now only `.ab-item` and `a` are targeted
+
+## [1.0.13] – 2026-04-05
+### Fixed
+- Postbox header `background` and `color` now use `!important` on the base rule (not only on hover) — fixes ACF field group editor and other plugin screens where ACF's stylesheet was loaded after ours and overriding the colors
+
+## [1.0.12] – 2026-04-03
+### Added
+- New **Intestazione Postbox** section in settings page: color pickers for header background and text color, plus a numeric input for vertical padding
+- `--mk-postbox-header-bg`, `--mk-postbox-header-text`, `--mk-postbox-header-padding` CSS vars added as static fallback defaults in `admin-style.css` `:root` block
+
+### Fixed
+- Postbox header: all hardcoded `#fff` / `var(--mk-color-primary)` / `10px` replaced with the new `--mk-postbox-header-*` CSS variables (header bg, text color, padding) — fully customizable, no hardcoded values remaining
+- `#wpfooter` hardcoded `color: #666` replaced with `var(--mk-text-content-muted)`
+- `.postbox` border replaced from hardcoded `#dde0e4` to `var(--mk-border-color)`
+- `sanitize`: `postbox_header_padding` now handled as numeric (like `border_radius`) via `absint()`
+
 ## [1.0.11] – 2026-03-29
 ### Fixed
 - ACF Custom Styles: Fixed the real-time CSS preview in `settings.js` on the options page so the `custom_css` field is properly wrapped in the class selector, matching the actual generated output.

@@ -175,7 +175,7 @@
                 css += s + ' .acf-field p.description { background-color: ' + acfLabelBg + ' !important; border-radius: var(--mk-acf-radius); }\n';
             }
             if (customCss) {
-                css += s + ' {\n    ' + customCss + '\n}\n';
+                css += '/* custom: ' + s + ' */\n' + customCss + '\n';
             }
             css += '\n';
         });

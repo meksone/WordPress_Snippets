@@ -3,7 +3,7 @@
  * Plugin Name: MK Admin Theme
  * Plugin URI:  https://meksone.com
  * Description: Custom WordPress admin theme with Poppins font, rounded corners, and a blue/yellow palette. Fully customizable via Settings > Impostazioni tema admin.
- * Version:     1.0.11
+ * Version:     1.0.16
  * Author:      Manuel Serrenti (meksONE)
  * Author URI:  https://meksone.com
  * License:     GPL-2.0+
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'MK_ADMIN_THEME_VERSION', '1.0.11' );
+define( 'MK_ADMIN_THEME_VERSION', '1.0.16' );
 define( 'MK_ADMIN_THEME_URL',     plugin_dir_url( __FILE__ ) );
 define( 'MK_ADMIN_THEME_PATH',    plugin_dir_path( __FILE__ ) );
 
@@ -47,6 +47,10 @@ function mk_admin_theme_defaults() {
         'color_button_primary_text' => '#ffffff',
         'color_button_secondary_bg' => '#fdc513',
         'color_button_secondary_text' => '#013162',
+        // Postbox header
+        'postbox_header_bg'      => '',       // empty = inherit --mk-color-primary
+        'postbox_header_text'    => '#ffffff',
+        'postbox_header_padding' => '6',      // px vertical
         // Integrations – Elementor sync
         'sync_elementor_gutenberg'  => '0',
         'sync_elementor_acf'        => '0',
@@ -96,8 +100,13 @@ add_action( 'admin_enqueue_scripts', 'mk_admin_theme_enqueue' );
 add_action( 'login_enqueue_scripts', 'mk_admin_theme_enqueue' );
 
 function mk_admin_theme_css_vars() {
-    $r = mk_admin_theme_get( 'border_radius' );
-    $r = is_numeric( $r ) ? (int) $r : 5;
+    $r   = mk_admin_theme_get( 'border_radius' );
+    $r   = is_numeric( $r ) ? (int) $r : 5;
+
+    $pbg  = mk_admin_theme_get( 'postbox_header_bg' );
+    $ptxt = mk_admin_theme_get( 'postbox_header_text' );
+    $ppad = mk_admin_theme_get( 'postbox_header_padding' );
+    $ppad = is_numeric( $ppad ) ? (int) $ppad : 6;
 
     $vars = '
 :root {
@@ -119,9 +128,68 @@ function mk_admin_theme_css_vars() {
     --mk-btn-secondary-bg:         ' . mk_admin_theme_get('color_button_secondary_bg') . ';
     --mk-btn-secondary-text:       ' . mk_admin_theme_get('color_button_secondary_text') . ';
     --mk-radius:                   ' . $r . 'px;
+    --mk-postbox-header-bg:        ' . ( $pbg  ?: 'var(--mk-color-primary)' ) . ';
+    --mk-postbox-header-text:      ' . ( $ptxt ?: '#ffffff' ) . ';
+    --mk-postbox-header-padding:   ' . $ppad . 'px;
 }';
     return $vars;
 }
+
+// Postbox header override CSS block — shared output function.
+function mk_admin_theme_postbox_css_block( $include_acf_selector = false ) {
+    $pbg  = mk_admin_theme_get( 'postbox_header_bg' );
+    $ptxt = mk_admin_theme_get( 'postbox_header_text' );
+    $ppad = mk_admin_theme_get( 'postbox_header_padding' );
+    $ppad = is_numeric( $ppad ) ? (int) $ppad : 6;
+    $bg   = esc_attr( $pbg ?: 'var(--mk-color-primary)' );
+    $txt  = esc_attr( $ptxt ?: '#ffffff' );
+
+    // On ACF pages, mirror ACF's own specificity prefix so we win.
+    $pfx = $include_acf_selector ? '.acf-admin-page #poststuff ' : '';
+    ?>
+    <style id="mk-postbox-header-override">
+    <?php echo $pfx; ?>.postbox .postbox-header,
+    <?php echo $pfx; ?>.postbox h2.hndle {
+        background: <?php echo $bg; ?> !important;
+        color: <?php echo $txt; ?> !important;
+        padding: <?php echo $ppad; ?>px 14px !important;
+    }
+    <?php echo $pfx; ?>.postbox .postbox-header h2,
+    <?php echo $pfx; ?>.postbox .postbox-header h3,
+    <?php echo $pfx; ?>.postbox .postbox-header .hndle,
+    <?php echo $pfx; ?>.postbox .postbox-header .hndle span,
+    <?php echo $pfx; ?>.postbox h2.hndle,
+    <?php echo $pfx; ?>.postbox h2.hndle span {
+        color: <?php echo $txt; ?> !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    <?php echo $pfx; ?>.postbox .postbox-header:hover,
+    <?php echo $pfx; ?>.postbox h2.hndle:hover {
+        background: <?php echo $bg; ?> !important;
+        color: <?php echo $txt; ?> !important;
+    }
+    <?php echo $pfx; ?>.postbox .postbox-header h2:hover,
+    <?php echo $pfx; ?>.postbox .postbox-header h3:hover,
+    <?php echo $pfx; ?>.postbox .postbox-header .hndle:hover,
+    <?php echo $pfx; ?>.postbox .postbox-header .hndle:focus {
+        background: transparent !important;
+        color: <?php echo $txt; ?> !important;
+        box-shadow: none !important;
+    }
+    </style>
+    <?php
+}
+
+// Non-ACF admin pages — fires after enqueued styles are printed.
+add_action( 'admin_head', function () { mk_admin_theme_postbox_css_block( false ); }, 9999 );
+
+// ACF input pages (post edit, options pages with ACF fields) —
+// acf/input/admin_head fires after ACF outputs its own inline CSS.
+add_action( 'acf/input/admin_head', function () { mk_admin_theme_postbox_css_block( true ); } );
+
+// ACF field group editor — separate hook, same approach.
+add_action( 'acf/field_group/admin_head', function () { mk_admin_theme_postbox_css_block( true ); } );
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Settings page
@@ -154,7 +222,7 @@ function mk_admin_theme_sanitize( $input ) {
     $output       = [];
 
     foreach ( $defaults as $key => $default ) {
-        if ( $key === 'border_radius' ) {
+        if ( in_array( $key, [ 'border_radius', 'postbox_header_padding' ], true ) ) {
             $output[ $key ] = isset( $input[ $key ] ) ? absint( $input[ $key ] ) : absint( $default );
         } elseif ( in_array( $key, $bool_fields, true ) ) {
             $output[ $key ] = ! empty( $input[ $key ] ) ? '1' : '0';
@@ -423,6 +491,58 @@ function mk_admin_theme_settings_page() {
                             class="small-text"
                         />
                         <p class="description"><?php esc_html_e( 'Valore predefinito: 5. Imposta 0 per angoli netti.', 'mk-admin-theme' ); ?></p>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Postbox header -->
+            <h2><?php esc_html_e( 'Intestazione Postbox', 'mk-admin-theme' ); ?></h2>
+            <table class="form-table" role="presentation">
+                <tr>
+                    <th scope="row">
+                        <label for="mk_postbox_header_bg"><?php esc_html_e( 'Sfondo intestazione', 'mk-admin-theme' ); ?></label>
+                    </th>
+                    <td>
+                        <input
+                            type="text"
+                            id="mk_postbox_header_bg"
+                            name="mk_admin_theme_options[postbox_header_bg]"
+                            value="<?php echo esc_attr( mk_admin_theme_get( 'postbox_header_bg' ) ); ?>"
+                            class="mk-color-picker"
+                            data-default-color=""
+                        />
+                        <p class="description"><?php esc_html_e( 'Lascia vuoto per usare il colore primario.', 'mk-admin-theme' ); ?></p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label for="mk_postbox_header_text"><?php esc_html_e( 'Colore testo intestazione', 'mk-admin-theme' ); ?></label>
+                    </th>
+                    <td>
+                        <input
+                            type="text"
+                            id="mk_postbox_header_text"
+                            name="mk_admin_theme_options[postbox_header_text]"
+                            value="<?php echo esc_attr( mk_admin_theme_get( 'postbox_header_text' ) ); ?>"
+                            class="mk-color-picker"
+                            data-default-color="#ffffff"
+                        />
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label for="mk_postbox_header_padding"><?php esc_html_e( 'Padding verticale (px)', 'mk-admin-theme' ); ?></label>
+                    </th>
+                    <td>
+                        <input
+                            type="number"
+                            id="mk_postbox_header_padding"
+                            name="mk_admin_theme_options[postbox_header_padding]"
+                            value="<?php echo esc_attr( mk_admin_theme_get( 'postbox_header_padding' ) ); ?>"
+                            min="0" max="50" step="1"
+                            class="small-text"
+                        />
+                        <p class="description"><?php esc_html_e( 'Valore predefinito: 6.', 'mk-admin-theme' ); ?></p>
                     </td>
                 </tr>
             </table>

@@ -29,6 +29,9 @@
     --mk-text-content-muted:       #50575e;
     --mk-border-color:             #dde0e4;
     --mk-row-hover:                rgba(1, 49, 98, 0.06);
+    --mk-postbox-header-bg:        var(--mk-color-primary);
+    --mk-postbox-header-text:      #ffffff;
+    --mk-postbox-header-padding:   6px;
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -285,7 +288,7 @@ input, select, textarea, button {
     font-family: 'Poppins', sans-serif !important;
 }
 
-#wpadminbar *, #wpadminbar .ab-item, #wpadminbar a {
+#wpadminbar .ab-item, #wpadminbar a {
     color: var(--mk-text-topbar) !important;
 }
 
@@ -405,37 +408,37 @@ input, select, textarea, button {
 
 /* Postboxes */
 .postbox, .metabox-holder .postbox {
-    border: 1px solid #dde0e4;
+    border: 1px solid var(--mk-border-color);
     border-radius: var(--mk-radius);
     overflow: hidden;
 }
 
 .postbox .postbox-header, .postbox h2.hndle {
-    background: var(--mk-color-primary);
-    color: #fff;
+    background: var(--mk-postbox-header-bg) !important;
+    color: var(--mk-postbox-header-text) !important;
     border-radius: var(--mk-radius) var(--mk-radius) 0 0;
-    padding: 10px 14px;
+    padding: var(--mk-postbox-header-padding) 14px;
     font-size: 13px;
     font-weight: 600;
 }
 
 .postbox .postbox-header .hndle span,
 .postbox h2.hndle span {
-    color: #fff !important;
+    color: var(--mk-postbox-header-text) !important;
 }
 
-/* Keep primary colour on hover — prevents WP/Gutenberg grey override */
+/* Keep postbox header colour on hover — prevents WP/Gutenberg grey override */
 .postbox .postbox-header:hover,
 .postbox h2.hndle:hover {
-    background: var(--mk-color-primary) !important;
-    color: #fff !important;
+    background: var(--mk-postbox-header-bg) !important;
+    color: var(--mk-postbox-header-text) !important;
 }
 
 /* Gutenberg adds a separate hover on the .hndle text node — neutralise it */
 .postbox .postbox-header .hndle:hover,
 .postbox .postbox-header .hndle:focus {
     background: transparent !important;
-    color: #fff !important;
+    color: var(--mk-postbox-header-text) !important;
     box-shadow: none !important;
 }
 
@@ -622,7 +625,7 @@ body.login .message, body.login .success, body.login .error {
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    MISC
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-#wpfooter       { color: #666; font-size: 12px; }
+#wpfooter       { color: var(--mk-text-content-muted); font-size: 12px; }
 #tiptip_holder .tiptip_content { border-radius: var(--mk-radius); }
 .media-modal, .media-frame { border-radius: var(--mk-radius) !important; }
 #collapse-button { color: var(--mk-text-menu) !important; }
