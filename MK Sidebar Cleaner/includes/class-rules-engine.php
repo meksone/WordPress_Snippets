@@ -77,8 +77,9 @@ class MK_Sidebar_Cleaner_Rules_Engine {
 			if ( is_array( $menu ) ) {
 				foreach ( $menu as $pos => $item ) {
 					if ( ( $item[2] ?? '' ) === $g['slug'] ) {
-						// mksc-folder is used by JS accordion
-						$menu[ $pos ][4] = trim( ( $item[4] ?? '' ) . ' mksc-folder mksc-folder-' . esc_attr($g['slug']) );
+						// mksc-folder is used by JS accordion (using md5 to avoid special char parsing errors in jQuery)
+						$safe_slug = md5( $g['slug'] );
+						$menu[ $pos ][4] = trim( ( $item[4] ?? '' ) . ' mksc-folder mksc-folder-' . $safe_slug );
 						break;
 					}
 				}
@@ -119,8 +120,9 @@ class MK_Sidebar_Cleaner_Rules_Engine {
 					// Rimuove il plugin dalla sua posizione originaria
 					unset( $menu[ $item_pos ] );
 					
-					// Aggancia e marca il plugin come figlio
-					$item_data[4] = trim( ( $item_data[4] ?? '' ) . " mksc-child mksc-child-of-" . esc_attr($target_slug) );
+					// Aggancia e marca il plugin come figlio usando un hash sicuro per le classi
+					$safe_target = md5( $target_slug );
+					$item_data[4] = trim( ( $item_data[4] ?? '' ) . " mksc-child mksc-child-of-" . $safe_target );
 					
 					// Calcola lo slot decimale per mantenerlo fisicamente contiguo in $menu
 					$offset = 0.001;
@@ -196,7 +198,7 @@ class MK_Sidebar_Cleaner_Rules_Engine {
 					$separator_entries[ $pos ] = $item;
 				} else {
 					// Check it is a child belonging to a folder
-					if ( strpos( $item[4] ?? '', 'mksc-child-of-' ) !== false && preg_match('/mksc-child-of-([^\s]+)/', $item[4], $m) ) {
+					if ( strpos( $item[4] ?? '', 'mksc-child-of-' ) !== false && preg_match('/mksc-child-of-([a-f0-9]{32})/', $item[4], $m) ) {
 						$folder_children[ $m[1] ][] = $item;
 					} else {
 						$by_slug[ $slug ] = $item;
@@ -216,8 +218,9 @@ class MK_Sidebar_Cleaner_Rules_Engine {
 				if ( $pool_idx < count( $pos_pool ) ) {
 					$new_menu[ (string) $pos_pool[ $pool_idx++ ] ] = $item;
 				}
-				if ( isset( $folder_children[ $slug ] ) ) {
-					foreach ( $folder_children[ $slug ] as $child_item ) {
+				$safe_slug = md5( $slug ); // I figli sono mappati usando l'hash sicuro
+				if ( isset( $folder_children[ $safe_slug ] ) ) {
+					foreach ( $folder_children[ $safe_slug ] as $child_item ) {
 						if ( $pool_idx < count( $pos_pool ) ) {
 							$new_menu[ (string) $pos_pool[ $pool_idx++ ] ] = $child_item;
 						}
@@ -405,26 +408,6 @@ class MK_Sidebar_Cleaner_Rules_Engine {
 }
 #adminmenu li.current a .mksc-flat-child { opacity: 1; }
 
-/* Collapsible parent row inside custom groups */
-#adminmenu .mksc-moved-parent {
-	display: flex;
-	align-items: center;
-	gap: 5px;
-	cursor: pointer;
-}
-#adminmenu .mksc-moved-parent::before {
-	content: "\25B6"; /* ▶ */
-	font-size: 8px;
-	opacity: .5;
-	transition: transform .15s;
-	flex-shrink: 0;
-}
-#adminmenu .mksc-moved-parent.mksc-open::before {
-	transform: rotate(90deg);
-}
-/* Child rows hidden by default (JS overrides on load) */
-#adminmenu li.mksc-child-hidden { display: none; }
-
 /* Forced indicator arrow for folders */
 #adminmenu li.mksc-folder > a.menu-top::after {
 	content: "\25BC";
@@ -440,6 +423,26 @@ class MK_Sidebar_Cleaner_Rules_Engine {
 	transform: translateY(-50%) rotate(0deg);
 }
 body.folded #adminmenu li.mksc-folder > a.menu-top::after { display: none; }
+
+/* Top-Level Accordion child logic */
+#adminmenu li.mksc-child {
+	display: none; /* Nascondi sempre al primo caricamento */
+}
+#adminmenu li.mksc-child > a.menu-top {
+	padding-left: 30px; /* Rientro visivo a destra */
+	opacity: 0.85;
+}
+#adminmenu li.mksc-child > a.menu-top .wp-menu-image {
+	width: 20px; /* Rimpiccioliamo leggermente l'icona */
+}
+#adminmenu li.mksc-child.current > a.menu-top,
+#adminmenu li.mksc-child:hover > a.menu-top {
+	opacity: 1;
+}
+body.folded #adminmenu li.mksc-child > a.menu-top {
+	padding-left: 0;
+	opacity: 0.75;
+}
 
 </style>
 <script id="mksc-sidebar-js">
@@ -464,8 +467,10 @@ jQuery( function( $ ) {
 
 	var openNested = getOpen();
 	openNested.forEach( function( slug ) { 
-		$( '#adminmenu [data-mksc-group="' + slug + '"]' ).addClass( 'mksc-open' );
-		childItems( slug ).show();
+		try {
+			$( '#adminmenu [data-mksc-group="' + slug + '"]' ).addClass( 'mksc-open' );
+			childItems( slug ).show();
+		} catch(e) {}
 	} );
 
 	$( '#adminmenu' ).on( 'click', '[data-mksc-group]', function( e ) {
@@ -507,8 +512,12 @@ jQuery( function( $ ) {
 	// Applica stato iniziale (ripristino da localStorage)
 	var openFolders = getOpen();
 	openFolders.forEach( function( slug ) {
-		$( '#adminmenu li.mksc-folder-' + slug ).addClass( 'mksc-open' );
-		$( '#adminmenu li.mksc-child-of-' + slug ).show().removeClass( 'mksc-child-hidden' );
+		try {
+			$( '#adminmenu li.mksc-folder-' + slug ).addClass( 'mksc-open' );
+			$( '#adminmenu li.mksc-child-of-' + slug ).show();
+		} catch(e) {
+			// Silently fail for legacy unhashed slugs still stuck in the localStorage
+		}
 	});
 
 	// Trigger al click delle cartelle custom
@@ -517,7 +526,7 @@ jQuery( function( $ ) {
 		e.stopPropagation();
 
 		var $li = $( this ).closest( 'li.mksc-folder' );
-		var match = $li.attr( 'class' ).match( /mksc-folder-([^\s]+)/ );
+		var match = $li.attr( 'class' ).match( /mksc-folder-([a-f0-9]{32})/ );
 		if ( ! match ) return;
 		var slug = match[1];
 
@@ -531,7 +540,7 @@ jQuery( function( $ ) {
 			// Accordion: chiudi le altre cartelle
 			$( '#adminmenu li.mksc-folder.mksc-open' ).each( function() {
 				$( this ).removeClass( 'mksc-open' );
-				var oMatch = $( this ).attr( 'class' ).match( /mksc-folder-([^\s]+)/ );
+				var oMatch = $( this ).attr( 'class' ).match( /mksc-folder-([a-f0-9]{32})/ );
 				if ( oMatch ) {
 					$( '#adminmenu li.mksc-child-of-' + oMatch[1] ).slideUp( 250 );
 					saved = saved.filter( function(s) { return s !== oMatch[1]; } );
