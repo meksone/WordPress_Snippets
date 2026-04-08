@@ -425,11 +425,22 @@ class MK_Sidebar_Cleaner_Rules_Engine {
 /* Child rows hidden by default (JS overrides on load) */
 #adminmenu li.mksc-child-hidden { display: none; }
 
-/* Force absolute position for opened flyouts even when mouse leaves (in non-folded mode) */
-body:not(.folded) #adminmenu li.mksc-custom-group-top.wp-not-current-submenu.opensub .wp-submenu {
-	position: absolute !important;
-	z-index: 10000;
+/* Forced indicator arrow for folders */
+#adminmenu li.mksc-folder > a.menu-top::after {
+	content: "\25BC";
+	position: absolute;
+	right: 10px;
+	top: 50%;
+	transform: translateY(-50%) rotate(-90deg);
+	font-size: 10px;
+	opacity: 0.5;
+	transition: transform 0.2s;
 }
+#adminmenu li.mksc-folder.mksc-open > a.menu-top::after {
+	transform: translateY(-50%) rotate(0deg);
+}
+body.folded #adminmenu li.mksc-folder > a.menu-top::after { display: none; }
+
 </style>
 <script id="mksc-sidebar-js">
 jQuery( function( $ ) {
@@ -444,121 +455,19 @@ jQuery( function( $ ) {
 		catch(e) {}
 	}
 
-	// Mark child <li> elements that belong to a given group slug.
+	// --- 1. SOTTOMENU ANNIDATI (Vecchia logica per menu di sistema es. Impostazioni) ---
 	function childItems( slug ) {
 		return $( '#adminmenu [data-mksc-child="' + slug + '"]' ).closest( 'li' );
 	}
 
-	// Hide all child rows completely on load (to prevent flash before JS),
-	// but remove the CSS class because we handle visibility via hide/show.
 	$( '#adminmenu [data-mksc-child]' ).closest( 'li' ).hide().removeClass( 'mksc-child-hidden' );
 
-	var scrollDebounce = null;
-
-	function updatePosition( $items ) {
-		if ( ! $items || ! $items.length ) return;
-		var $flyout = $items.closest('.wp-submenu');
-		if ( ! $flyout.length ) return;
-
-		var $li = $flyout.closest('li.menu-top');
-		if ( ! $li.length ) return;
-
-		var isFlyoutMode = $(document.body).hasClass('folded') || $li.hasClass('wp-not-current-submenu');
-		
-		if ( ! isFlyoutMode ) {
-			// --- INLINE MODE (Sidebar non-folded, menu corrente) ---
-			// Scorre gentilmente il browser solo se superiamo il bordo inferiore.
-			var lastItem = $items.last()[0];
-			var rect = lastItem.getBoundingClientRect();
-			if ( rect.bottom > window.innerHeight - 20 ) {
-				clearTimeout( scrollDebounce );
-				scrollDebounce = setTimeout( function() {
-					lastItem.scrollIntoView( { behavior: 'smooth', block: 'nearest' } );
-				}, 50 );
-			}
-		} else {
-			// --- FLYOUT MODE (Sidebar folded o nativo WP) ---
-			var $li = $flyout.closest('li.menu-top');
-			if ( ! $li.length ) return;
-
-			var windowHeight = window.innerHeight;
-			var liTop = $li[0].getBoundingClientRect().top;
-			var liHeight = $li.outerHeight();
-			var submenuHeight = $flyout.outerHeight();
-			
-			// Calcoliamo la proporzione basata su dove si trova la voce nel viewport (da 0 a 1)
-			// p = 0 (alto), p = 0.5 (centro), p = 1 (basso)
-			var percentage = liTop / windowHeight;
-			percentage = Math.max(0, Math.min(1, percentage));
-
-			// FORMULA PROPORZIONALE MAGICA:
-			// - Se in alto, margin 0 (espande in basso)
-			// - Se al centro, margin negativo a metà dell'altezza (espande sopra e sotto equamente)
-			// - Se in basso, margin allinea il bordo inferiore (espande solo in alto)
-			var marginTop = percentage * (liHeight - submenuHeight);
-
-			// LIMITI DI SICUREZZA (CLAMPING):
-			var maxMarginTop = windowHeight - 5 - liTop - submenuHeight;
-			if ( marginTop > maxMarginTop ) {
-				marginTop = maxMarginTop;
-			}
-			
-			var minMarginTop = 32 - liTop;
-			if ( marginTop < minMarginTop ) {
-				marginTop = minMarginTop;
-			}
-			
-			// DEBUG per capire se sta effettivamente agganciando la logica:
-			console.log("MKSC Flyout Math -> ratio: " + percentage.toFixed(2) + " | calcolato margin-top: " + marginTop + "px");
-
-			$flyout.css('margin-top', marginTop + 'px');
-		}
-	}
-
-	function animateGroup( $items, type, animate ) {
-		var duration = 250;
-		if ( type === 'open' ) {
-			if ( animate ) $items.slideDown( duration );
-			else $items.show();
-		} else {
-			if ( animate ) $items.slideUp( duration );
-			else $items.hide();
-		}
-		
-		if ( ! animate ) {
-			updatePosition( $items );
-			return;
-		}
-
-		// Ricalcola la posizione lungo l'animazione, ad ogni frame
-		var start = Date.now();
-		function step() {
-			updatePosition( $items );
-			if ( Date.now() - start < duration + 20 ) {
-				window.requestAnimationFrame( step );
-			} else {
-				updatePosition( $items ); // Assicura lo stato finale
-			}
-		}
-		window.requestAnimationFrame( step );
-	}
-
-	function openGroup( slug, animate ) {
-		var $items = childItems( slug );
+	var openNested = getOpen();
+	openNested.forEach( function( slug ) { 
 		$( '#adminmenu [data-mksc-group="' + slug + '"]' ).addClass( 'mksc-open' );
-		animateGroup( $items, 'open', animate );
-	}
+		childItems( slug ).show();
+	} );
 
-	function closeGroup( slug, animate ) {
-		var $items = childItems( slug );
-		$( '#adminmenu [data-mksc-group="' + slug + '"]' ).removeClass( 'mksc-open' );
-		animateGroup( $items, 'close', animate );
-	}
-
-	var open = getOpen();
-	open.forEach( function( slug ) { openGroup( slug, false ); } );
-
-	// Click handler on the parent span (not its <a>, so we stop propagation).
 	$( '#adminmenu' ).on( 'click', '[data-mksc-group]', function( e ) {
 		e.preventDefault();
 		e.stopPropagation();
@@ -569,84 +478,88 @@ jQuery( function( $ ) {
 		var saved   = getOpen();
 
 		if ( isOpen ) {
-			closeGroup( slug, true );
+			$( this ).removeClass( 'mksc-open' );
+			childItems( slug ).slideUp( 250 );
 			saved = saved.filter( function(s) { return s !== slug; } );
 		} else {
-			// Accordion logic: chiudi gli altri gruppi aperti nello stesso menu
+			// Accordion
 			if ( $submenu.length ) {
 				$submenu.find('[data-mksc-group].mksc-open').each(function() {
 					var otherSlug = $(this).data('mksc-group');
 					if ( otherSlug !== slug ) {
-						closeGroup( otherSlug, true );
+						$(this).removeClass('mksc-open');
+						childItems( otherSlug ).slideUp( 250 );
 						saved = saved.filter( function(s) { return s !== otherSlug; } );
 					}
 				});
 			}
 
-			openGroup( slug, true );
-			if ( saved.indexOf(slug) === -1 ) {
-				saved.push( slug );
-			}
+			$( this ).addClass( 'mksc-open' );
+			childItems( slug ).slideDown( 250 );
+			if ( saved.indexOf(slug) === -1 ) saved.push( slug );
 		}
 		
 		saveOpen( saved );
 	} );
 
-	// --- Custom Top-Level Groups (Flyout Override) ---
-	// WP lega gli eventi (hoverIntent) nei suoi script al document.ready.
-	// Visto che il nostro script in admin_head gira *prima*, dobbiamo 
-	// usare un delay per scollegare fisicamente gli eventi nativi di WP.
+	// --- 2. NUOVE CARTELLE TOP-LEVEL (Main Sidebar Accordion) ---
 	
-	function initCustomGroups() {
-		var $tops = $( 'li.mksc-custom-group-top' );
-		if ( ! $tops.length ) return;
+	// Applica stato iniziale (ripristino da localStorage)
+	var openFolders = getOpen();
+	openFolders.forEach( function( slug ) {
+		$( '#adminmenu li.mksc-folder-' + slug ).addClass( 'mksc-open' );
+		$( '#adminmenu li.mksc-child-of-' + slug ).show().removeClass( 'mksc-child-hidden' );
+	});
 
-		// 1. Distruggiamo TUTTI i listener nativi legati a questi menu:
-		// hoverIntent usa mouseenter/mouseleave. WP usa click. 
-		// Li defenestriamo per prendere il controllo totale.
-		$tops.off( 'mouseenter mouseleave hover' );
+	// Trigger al click delle cartelle custom
+	$( '#adminmenu' ).on( 'click', 'li.mksc-folder > a.menu-top', function( e ) {
+		e.preventDefault();
+		e.stopPropagation();
 
-		// 2. Apriamo/Chiudiamo il flyout nativo SOLO ed esclusivamente al click
-		$tops.find( '> a.menu-top' ).off('click').on( 'click', function(e) {
-			e.preventDefault();
-			e.stopPropagation();
+		var $li = $( this ).closest( 'li.mksc-folder' );
+		var match = $li.attr( 'class' ).match( /mksc-folder-([^\s]+)/ );
+		if ( ! match ) return;
+		var slug = match[1];
 
-			var $li = $(this).closest('li');
-			var isFlyoutMode = $(document.body).hasClass('folded') || $li.hasClass('wp-not-current-submenu');
+		var isOpen = $li.hasClass( 'mksc-open' );
+		var saved = getOpen().filter( function(s) { return s !== slug; } );
 
-			if ( isFlyoutMode ) {
-				// Siccome WP non aggiornerà più i margin-top via hover,
-				// aggiorniamo la posizione manualmente all'apertura se necessario
-				if ( $li.hasClass('opensub') ) {
-					$li.removeClass('opensub');
-					$li.find('.wp-submenu').css('margin-top', '');
-				} else {
-					$('#adminmenu li.opensub').removeClass('opensub');
-					$li.addClass('opensub');
-
-					var $submenu = $li.find('.wp-submenu');
-					if ( $submenu.length ) {
-						var $children = $submenu.find('li');
-						if ( $children.length ) updatePosition( $children );
-					}
+		if ( isOpen ) {
+			$li.removeClass( 'mksc-open' );
+			$( '#adminmenu li.mksc-child-of-' + slug ).slideUp( 250 );
+		} else {
+			// Accordion: chiudi le altre cartelle
+			$( '#adminmenu li.mksc-folder.mksc-open' ).each( function() {
+				$( this ).removeClass( 'mksc-open' );
+				var oMatch = $( this ).attr( 'class' ).match( /mksc-folder-([^\s]+)/ );
+				if ( oMatch ) {
+					$( '#adminmenu li.mksc-child-of-' + oMatch[1] ).slideUp( 250 );
+					saved = saved.filter( function(s) { return s !== oMatch[1]; } );
 				}
+			} );
+
+			// Apri la cartella corrente
+			$li.addClass( 'mksc-open' );
+			$( '#adminmenu li.mksc-child-of-' + slug ).slideDown( 250 );
+			saved.push( slug );
+			
+			// Auto-scroll se sta uscendo fuori dallo schermo (in modalità espansa)
+			if ( ! $(document.body).hasClass('folded') ) {
+				setTimeout(function() {
+					var $children = $( '#adminmenu li.mksc-child-of-' + slug );
+					if ($children.length) {
+						var lastChild = $children.last()[0];
+						var rect = lastChild.getBoundingClientRect();
+						if ( rect.bottom > window.innerHeight - 20 ) {
+							lastChild.scrollIntoView( { behavior: 'smooth', block: 'nearest' } );
+						}
+					}
+				}, 260); // Aspetta la fine della transizione
 			}
-		});
-	}
-
-	// Avvia appena la pagina e gli script nativi sono pronti
-	$(window).on('load', function() {
-		initCustomGroups();
-		// In caso di caricamenti lenti garantiamo anche un timer
-		setTimeout( initCustomGroups, 500 ); 
-	});
-
-	// 3. Chiudiamo le tendine al click fuori
-	$(document).on( 'click', function(e) {
-		if ( ! $(e.target).closest('#adminmenu li.mksc-custom-group-top').length ) {
-			$('li.mksc-custom-group-top.opensub').removeClass('opensub');
 		}
-	});
+
+		saveOpen( saved );
+	} );
 
 } );
 </script>
