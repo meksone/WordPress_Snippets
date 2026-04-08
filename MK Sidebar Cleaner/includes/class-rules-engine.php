@@ -400,6 +400,12 @@ class MK_Sidebar_Cleaner_Rules_Engine {
 }
 /* Child rows hidden by default (JS overrides on load) */
 #adminmenu li.mksc-child-hidden { display: none; }
+
+/* Force absolute position for opened flyouts even when mouse leaves (in non-folded mode) */
+body:not(.folded) #adminmenu li.mksc-custom-group-top.wp-not-current-submenu.opensub .wp-submenu {
+	position: absolute !important;
+	z-index: 10000;
+}
 </style>
 <script id="mksc-sidebar-js">
 jQuery( function( $ ) {
@@ -430,10 +436,13 @@ jQuery( function( $ ) {
 		var $flyout = $items.closest('.wp-submenu');
 		if ( ! $flyout.length ) return;
 
-		var position = $flyout.css('position');
+		var $li = $flyout.closest('li.menu-top');
+		if ( ! $li.length ) return;
+
+		var isFlyoutMode = $(document.body).hasClass('folded') || $li.hasClass('wp-not-current-submenu');
 		
-		if ( position !== 'absolute' && position !== 'fixed' ) {
-			// --- INLINE MODE (Sidebar non-folded) ---
+		if ( ! isFlyoutMode ) {
+			// --- INLINE MODE (Sidebar non-folded, menu corrente) ---
 			// Scorre gentilmente il browser solo se superiamo il bordo inferiore.
 			var lastItem = $items.last()[0];
 			var rect = lastItem.getBoundingClientRect();
@@ -465,20 +474,19 @@ jQuery( function( $ ) {
 			var marginTop = percentage * (liHeight - submenuHeight);
 
 			// LIMITI DI SICUREZZA (CLAMPING):
-			// Non evadiamo dallo schermo anche se ci espandiamo 
-			// 1. Limite inferiore (windowHeight)
 			var maxMarginTop = windowHeight - 5 - liTop - submenuHeight;
 			if ( marginTop > maxMarginTop ) {
 				marginTop = maxMarginTop;
 			}
 			
-			// 2. Limite superiore (topbar WP è solitamente a circa 32px)
-			// Ha priorità (viene dopo) nel caso il menu sia più alto dello schermo intero
 			var minMarginTop = 32 - liTop;
 			if ( marginTop < minMarginTop ) {
 				marginTop = minMarginTop;
 			}
 			
+			// DEBUG per capire se sta effettivamente agganciando la logica:
+			console.log("MKSC Flyout Math -> ratio: " + percentage.toFixed(2) + " | calcolato margin-top: " + marginTop + "px");
+
 			$flyout.css('margin-top', marginTop + 'px');
 		}
 	}
