@@ -231,8 +231,28 @@
 .mksc-subitems {
 	list-style: none;
 	margin: 0;
-	padding: 3px 7px 5px 30px; /* indent aligns with item name */
-	border-top: 1px solid #f0f0f0;
+	/* Horizontal padding is always present; vertical padding animated */
+	padding: 0 7px 0 30px;
+	border-top: 1px solid transparent;
+	/* Collapsed state — CSS owns this, JS removes the [hidden] attr on load */
+	overflow: hidden;
+	max-height: 0;
+	/* Closing: slightly faster */
+	transition:
+		max-height   0.25s ease,
+		padding      0.2s  ease,
+		border-color 0.2s  ease;
+}
+.mksc-subitems.is-open {
+	/* Opening: slightly slower for a more natural feel */
+	max-height: 1200px; /* upper bound larger than any real menu */
+	padding-top: 3px;
+	padding-bottom: 5px;
+	border-top-color: #f0f0f0;
+	transition:
+		max-height   0.35s ease,
+		padding      0.2s  ease,
+		border-color 0.2s  ease;
 }
 .mksc-subitem {
 	font-size: 11px;

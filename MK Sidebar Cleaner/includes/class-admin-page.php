@@ -200,6 +200,35 @@ class MK_Sidebar_Cleaner_Admin_Page {
 			];
 		}
 
+		// Re-sort each zone's items by the saved order so the UI reflects the
+		// last-saved drag position rather than WP's natural menu position.
+		$saved_order = $cfg['order'] ?? [];
+
+		$sort_zone = function ( array &$zone_list, array $order_list ): void {
+			if ( empty( $order_list ) ) return;
+			usort( $zone_list, function ( $a, $b ) use ( $order_list ) {
+				$ai = array_search( $a['slug'], $order_list, true );
+				$bi = array_search( $b['slug'], $order_list, true );
+				$ai = $ai === false ? PHP_INT_MAX : $ai;
+				$bi = $bi === false ? PHP_INT_MAX : $bi;
+				return $ai <=> $bi;
+			} );
+		};
+
+		// Main Sidebar zone (JS key '__main__' maps to zone target '').
+		$sort_zone( $zone_items[''], $saved_order['__main__'] ?? [] );
+
+		// Built-in target zones (Settings, Tools).
+		foreach ( array_keys( self::BUILTIN_ZONES ) as $zt ) {
+			if ( $zt === '' ) continue;
+			$sort_zone( $zone_items[ $zt ], $saved_order[ $zt ] ?? [] );
+		}
+
+		// Custom group zones.
+		foreach ( $custom_groups as $g ) {
+			$sort_zone( $zone_items[ $g['slug'] ], $saved_order[ $g['slug'] ] ?? [] );
+		}
+
 		$reset_url = wp_nonce_url(
 			admin_url( 'admin-post.php?action=mk_sidebar_reset&mk_scope=' . $scope ),
 			'mk_sidebar_save'

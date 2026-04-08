@@ -1,5 +1,23 @@
 # Changelog — MK Sidebar Cleaner
 
+## [1.2.5] — 2026-04-08
+
+### Fixed
+- **Broken links for plugin sub-page children** (`wp-admin/slug` instead of `admin.php?page=slug`): when a plugin registers its sub-pages under its own parent (e.g. `add_submenu_page('dynamic-shortcodes', ..., 'dynamic-shortcodes-power', ...)`), moving the parent into a custom group or built-in target caused WP to output the raw slug as `href` (broken relative path). Root cause: `wp-admin/menu-header.php` calls `get_plugin_page_hook($slug, $new_parent)` and, finding no hook registered under the new parent, falls back to `href='{$slug}'`. Fix: bare plugin-page slugs are now replaced with their canonical URL (via `menu_page_url`) or `admin.php?page={slug}` before being stored in the target submenu, so WP uses the URL as-is without hook lookup. Links containing `.php` or `http` are left unchanged.
+
+## [1.2.4] — 2026-04-08
+
+### Fixed
+- **Sub-items invisible in built-in targets**: when a menu item with its own sub-items (e.g. Appearance/Themes) was moved to Settings or Tools, all its children were wrapped with `mksc-nested-item data-mksc-child=...` and then hidden by the collapsible JS on page load. Since there is no expand toggle for built-in targets, the children became permanently invisible. Children moved to built-in targets now use a `mksc-flat-child` span instead — always visible, same CSS indentation, not touched by the collapse/expand JS.
+- **Order not applied to Settings/Tools zones**: the saved order for items moved under Settings (`options-general.php`) or Tools (`tools.php`) was recorded by JS but never applied by `apply_order`. Built-in target zones are now reordered: native WP entries keep their original positions, moved entries are resequenced according to the saved zone order.
+
+## [1.2.3] — 2026-04-07
+
+### Fixed
+- **Order resets in UI**: the settings page now sorts items within each zone by the saved order, so drag positions are correctly reflected when the page is reloaded. Previously, items always appeared in WP's natural menu position order, causing any re-save to overwrite the stored order with the wrong sequence.
+- **Separator corruption in main menu**: `apply_order` was including WP separator entries (position keys 4, 9, 59, 79…) in the real-item position pool. Real items were being assigned to separator positions and separators were dropped, breaking the menu layout. Separators are now kept at their original keys and excluded from redistribution.
+- **Items disappearing from custom groups**: child entries (those with `mksc-nested-item` span) were grouped via a positional-sequence heuristic that broke when WooCommerce registers a submenu entry with the same slug as the parent (`woocommerce`). Grouping now uses the `data-mksc-child` attribute set by `apply_moves`, which is unambiguous. Items not in `zone_order` are appended at the end instead of being silently dropped.
+
 ## [1.2.2] — 2026-04-08
 
 ### Fixed

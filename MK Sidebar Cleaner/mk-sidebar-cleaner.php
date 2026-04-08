@@ -9,7 +9,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'MKSC_VERSION', '1.2.2' );
+define( 'MKSC_VERSION', '1.2.5' );
 define( 'MKSC_DIR',     plugin_dir_path( __FILE__ ) );
 define( 'MKSC_URL',     plugin_dir_url( __FILE__ ) );
 

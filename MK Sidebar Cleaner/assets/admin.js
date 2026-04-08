@@ -69,13 +69,52 @@ jQuery( function ( $ ) {
 
 	function openItem( $btn ) {
 		$btn.addClass( 'mksc-toggle--open' ).html( '&#x25BC;' );
-		$btn.closest( '.mksc-item' ).find( '.mksc-subitems' ).removeAttr( 'hidden' );
+		$btn.closest( '.mksc-item' ).find( '.mksc-subitems' ).addClass( 'is-open' );
 	}
 
 	function closeItem( $btn ) {
 		$btn.removeClass( 'mksc-toggle--open' ).html( '&#x25B6;' );
-		$btn.closest( '.mksc-item' ).find( '.mksc-subitems' ).attr( 'hidden', '' );
+		$btn.closest( '.mksc-item' ).find( '.mksc-subitems' ).removeClass( 'is-open' );
 	}
+
+	// On page load: hand visual control of .mksc-subitems to CSS.
+	// The PHP renders them with [hidden] for no-JS fallback; we remove
+	// it here so the max-height transition can work. Items remain
+	// visually closed because CSS defaults max-height to 0.
+	$( '.mksc-subitems' ).removeAttr( 'hidden' );
+
+	// -----------------------------------------------------------------------
+	// ResizeObserver — real-time viewport adjustment
+	// When a subitem list grows during its opening animation and its bottom
+	// edge exits the viewport, scroll it smoothly into view *while* it
+	// expands — no jump, no waiting for the click.
+	// -----------------------------------------------------------------------
+
+	var scrollDebounce = null;
+
+	function attachResizeObserver( el ) {
+		if ( ! ( 'ResizeObserver' in window ) ) return;
+		var ro = new ResizeObserver( function ( entries ) {
+			// Debounce: run after a short idle gap so we don't fire on every
+			// animation frame, but still respond well before the transition ends.
+			clearTimeout( scrollDebounce );
+			scrollDebounce = setTimeout( function () {
+				entries.forEach( function ( entry ) {
+					var el = entry.target;
+					if ( ! el.classList.contains( 'is-open' ) ) return;
+					var rect = el.getBoundingClientRect();
+					if ( rect.bottom > window.innerHeight - 16 ) {
+						el.scrollIntoView( { behavior: 'smooth', block: 'nearest' } );
+					}
+				} );
+			}, 50 );
+		} );
+		ro.observe( el );
+	}
+
+	$( '.mksc-subitems' ).each( function () {
+		attachResizeObserver( this );
+	} );
 
 	// Restore expanded state on load.
 	getExpanded().forEach( function ( slug ) {
