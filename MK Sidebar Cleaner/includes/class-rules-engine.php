@@ -55,6 +55,7 @@ class MK_Sidebar_Cleaner_Rules_Engine {
 	// -------------------------------------------------------------------------
 
 	private function register_custom_groups( array $groups ): void {
+		global $menu;
 		foreach ( $groups as $g ) {
 			add_menu_page(
 				$g['name'],
@@ -65,6 +66,18 @@ class MK_Sidebar_Cleaner_Rules_Engine {
 				$g['icon'] ?? 'dashicons-category',
 				$g['position'] ?? 30
 			);
+
+			// Add a specific class to our custom top-level menu items so JS can reliably target them
+			// and override native WP hover behavior.
+			if ( is_array( $menu ) ) {
+				foreach ( $menu as $pos => $item ) {
+					if ( ( $item[2] ?? '' ) === $g['slug'] ) {
+						// $item[4] is the class string in WP menu array
+						$menu[ $pos ][4] = trim( ( $item[4] ?? '' ) . ' mksc-custom-group-top' );
+						break;
+					}
+				}
+			}
 		}
 	}
 
@@ -406,21 +419,98 @@ jQuery( function( $ ) {
 		return $( '#adminmenu [data-mksc-child="' + slug + '"]' ).closest( 'li' );
 	}
 
-	function openGroup( slug ) {
-		childItems( slug ).removeClass( 'mksc-child-hidden' );
+	// Hide all child rows completely on load (to prevent flash before JS),
+	// but remove the CSS class because we handle visibility via hide/show.
+	$( '#adminmenu [data-mksc-child]' ).closest( 'li' ).hide().removeClass( 'mksc-child-hidden' );
+
+	var scrollDebounce = null;
+
+	function updatePosition( $items ) {
+		if ( ! $items || ! $items.length ) return;
+		var $flyout = $items.closest('.wp-submenu');
+		if ( ! $flyout.length ) return;
+
+		var position = $flyout.css('position');
+		
+		if ( position !== 'absolute' && position !== 'fixed' ) {
+			// --- INLINE MODE (Sidebar non-folded) ---
+			// Scorre gentilmente il browser solo se superiamo il bordo inferiore.
+			var lastItem = $items.last()[0];
+			var rect = lastItem.getBoundingClientRect();
+			if ( rect.bottom > window.innerHeight - 20 ) {
+				clearTimeout( scrollDebounce );
+				scrollDebounce = setTimeout( function() {
+					lastItem.scrollIntoView( { behavior: 'smooth', block: 'nearest' } );
+				}, 50 );
+			}
+		} else {
+			// --- FLYOUT MODE (Sidebar folded o nativo WP) ---
+			var $li = $flyout.closest('li.menu-top');
+			if ( ! $li.length ) return;
+
+			var liTop = $li[0].getBoundingClientRect().top;
+			var submenuHeight = $flyout.outerHeight();
+			var bottomEdge = liTop + submenuHeight;
+			
+			var marginTop = 0;
+			if ( bottomEdge > window.innerHeight ) {
+				// Il flyout andrebbe oltre lo schermo verso il basso.
+				// Troviamo il margine negativo necessario per far combaciare
+				// il bordo inferiore del flyout con il fondo della finestra.
+				// In questo modo, crescendo in altezza, si espanderà verso l'alto!
+				marginTop = window.innerHeight - bottomEdge - 5;
+				
+				// Evitiamo però che il top del menu spunti sopra la topbar di WP (circa 32px)
+				marginTop = Math.max( marginTop, 32 - liTop );
+			}
+			
+			// Applichiamo il ricalcolo in tempo reale.
+			$flyout.css('margin-top', marginTop < 0 ? marginTop + 'px' : '');
+		}
+	}
+
+	function animateGroup( $items, type, animate ) {
+		var duration = 250;
+		if ( type === 'open' ) {
+			if ( animate ) $items.slideDown( duration );
+			else $items.show();
+		} else {
+			if ( animate ) $items.slideUp( duration );
+			else $items.hide();
+		}
+		
+		if ( ! animate ) {
+			updatePosition( $items );
+			return;
+		}
+
+		// Ricalcola la posizione lungo l'animazione, ad ogni frame
+		var start = Date.now();
+		function step() {
+			updatePosition( $items );
+			if ( Date.now() - start < duration + 20 ) {
+				window.requestAnimationFrame( step );
+			} else {
+				updatePosition( $items ); // Assicura lo stato finale
+			}
+		}
+		window.requestAnimationFrame( step );
+	}
+
+	function openGroup( slug, animate ) {
+		var $items = childItems( slug );
 		$( '#adminmenu [data-mksc-group="' + slug + '"]' ).addClass( 'mksc-open' );
+		animateGroup( $items, 'open', animate );
 	}
 
-	function closeGroup( slug ) {
-		childItems( slug ).addClass( 'mksc-child-hidden' );
+	function closeGroup( slug, animate ) {
+		var $items = childItems( slug );
 		$( '#adminmenu [data-mksc-group="' + slug + '"]' ).removeClass( 'mksc-open' );
+		animateGroup( $items, 'close', animate );
 	}
-
-	// Hide all child rows on load, then restore saved open state.
-	$( '#adminmenu [data-mksc-child]' ).closest( 'li' ).addClass( 'mksc-child-hidden' );
 
 	var open = getOpen();
-	open.forEach( function( slug ) { openGroup( slug ); } );
+	open.forEach( function( slug ) { openGroup( slug, false ); } );
 
 	// Click handler on the parent span (not its <a>, so we stop propagation).
 	$( '#adminmenu' ).on( 'click', '[data-mksc-group]', function( e ) {
@@ -429,16 +519,89 @@ jQuery( function( $ ) {
 
 		var slug    = $( this ).data( 'mksc-group' );
 		var isOpen  = $( this ).hasClass( 'mksc-open' );
-		var saved   = getOpen().filter( function(s) { return s !== slug; } );
+		var $submenu = $( this ).closest('.wp-submenu');
+		var saved   = getOpen();
 
 		if ( isOpen ) {
-			closeGroup( slug );
+			closeGroup( slug, true );
+			saved = saved.filter( function(s) { return s !== slug; } );
 		} else {
-			openGroup( slug );
-			saved.push( slug );
+			// Accordion logic: chiudi gli altri gruppi aperti nello stesso menu
+			if ( $submenu.length ) {
+				$submenu.find('[data-mksc-group].mksc-open').each(function() {
+					var otherSlug = $(this).data('mksc-group');
+					if ( otherSlug !== slug ) {
+						closeGroup( otherSlug, true );
+						saved = saved.filter( function(s) { return s !== otherSlug; } );
+					}
+				});
+			}
+
+			openGroup( slug, true );
+			if ( saved.indexOf(slug) === -1 ) {
+				saved.push( slug );
+			}
 		}
+		
 		saveOpen( saved );
 	} );
+
+	// --- Custom Top-Level Groups (Flyout Override) ---
+	// WP lega gli eventi (hoverIntent) nei suoi script al document.ready.
+	// Visto che il nostro script in admin_head gira *prima*, dobbiamo 
+	// usare un delay per scollegare fisicamente gli eventi nativi di WP.
+	
+	function initCustomGroups() {
+		var $tops = $( 'li.mksc-custom-group-top' );
+		if ( ! $tops.length ) return;
+
+		// 1. Distruggiamo TUTTI i listener nativi legati a questi menu:
+		// hoverIntent usa mouseenter/mouseleave. WP usa click. 
+		// Li defenestriamo per prendere il controllo totale.
+		$tops.off( 'mouseenter mouseleave hover' );
+
+		// 2. Apriamo/Chiudiamo il flyout nativo SOLO ed esclusivamente al click
+		$tops.find( '> a.menu-top' ).off('click').on( 'click', function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+
+			var $li = $(this).closest('li');
+			var isFlyoutMode = $(document.body).hasClass('folded') || $li.hasClass('wp-not-current-submenu');
+
+			if ( isFlyoutMode ) {
+				// Siccome WP non aggiornerà più i margin-top via hover,
+				// aggiorniamo la posizione manualmente all'apertura se necessario
+				if ( $li.hasClass('opensub') ) {
+					$li.removeClass('opensub');
+					$li.find('.wp-submenu').css('margin-top', '');
+				} else {
+					$('#adminmenu li.opensub').removeClass('opensub');
+					$li.addClass('opensub');
+
+					var $submenu = $li.find('.wp-submenu');
+					if ( $submenu.length ) {
+						var $children = $submenu.find('li');
+						if ( $children.length ) updatePosition( $children );
+					}
+				}
+			}
+		});
+	}
+
+	// Avvia appena la pagina e gli script nativi sono pronti
+	$(window).on('load', function() {
+		initCustomGroups();
+		// In caso di caricamenti lenti garantiamo anche un timer
+		setTimeout( initCustomGroups, 500 ); 
+	});
+
+	// 3. Chiudiamo le tendine al click fuori
+	$(document).on( 'click', function(e) {
+		if ( ! $(e.target).closest('#adminmenu li.mksc-custom-group-top').length ) {
+			$('li.mksc-custom-group-top.opensub').removeClass('opensub');
+		}
+	});
+
 } );
 </script>
 		<?php

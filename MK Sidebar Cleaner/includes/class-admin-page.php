@@ -43,7 +43,10 @@ class MK_Sidebar_Cleaner_Admin_Page {
 	}
 
 	public function enqueue_assets( string $hook ): void {
-		if ( $hook !== 'tools_page_' . MK_Sidebar_Cleaner_Config::PAGE_SLUG ) return;
+		// Use strpos for PHP 7.4 compatibility.
+		// Temporarily debug the hook to the error log to ensure we know what WP is passing.
+		error_log( 'MKSC Enqueue Hook: ' . $hook );
+		if ( strpos( $hook, MK_Sidebar_Cleaner_Config::PAGE_SLUG ) === false ) return;
 
 		wp_enqueue_style(
 			'mksc-admin',
