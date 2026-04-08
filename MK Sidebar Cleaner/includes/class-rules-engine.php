@@ -448,24 +448,38 @@ jQuery( function( $ ) {
 			var $li = $flyout.closest('li.menu-top');
 			if ( ! $li.length ) return;
 
+			var windowHeight = window.innerHeight;
 			var liTop = $li[0].getBoundingClientRect().top;
+			var liHeight = $li.outerHeight();
 			var submenuHeight = $flyout.outerHeight();
-			var bottomEdge = liTop + submenuHeight;
 			
-			var marginTop = 0;
-			if ( bottomEdge > window.innerHeight ) {
-				// Il flyout andrebbe oltre lo schermo verso il basso.
-				// Troviamo il margine negativo necessario per far combaciare
-				// il bordo inferiore del flyout con il fondo della finestra.
-				// In questo modo, crescendo in altezza, si espanderà verso l'alto!
-				marginTop = window.innerHeight - bottomEdge - 5;
-				
-				// Evitiamo però che il top del menu spunti sopra la topbar di WP (circa 32px)
-				marginTop = Math.max( marginTop, 32 - liTop );
+			// Calcoliamo la proporzione basata su dove si trova la voce nel viewport (da 0 a 1)
+			// p = 0 (alto), p = 0.5 (centro), p = 1 (basso)
+			var percentage = liTop / windowHeight;
+			percentage = Math.max(0, Math.min(1, percentage));
+
+			// FORMULA PROPORZIONALE MAGICA:
+			// - Se in alto, margin 0 (espande in basso)
+			// - Se al centro, margin negativo a metà dell'altezza (espande sopra e sotto equamente)
+			// - Se in basso, margin allinea il bordo inferiore (espande solo in alto)
+			var marginTop = percentage * (liHeight - submenuHeight);
+
+			// LIMITI DI SICUREZZA (CLAMPING):
+			// Non evadiamo dallo schermo anche se ci espandiamo 
+			// 1. Limite inferiore (windowHeight)
+			var maxMarginTop = windowHeight - 5 - liTop - submenuHeight;
+			if ( marginTop > maxMarginTop ) {
+				marginTop = maxMarginTop;
 			}
 			
-			// Applichiamo il ricalcolo in tempo reale.
-			$flyout.css('margin-top', marginTop < 0 ? marginTop + 'px' : '');
+			// 2. Limite superiore (topbar WP è solitamente a circa 32px)
+			// Ha priorità (viene dopo) nel caso il menu sia più alto dello schermo intero
+			var minMarginTop = 32 - liTop;
+			if ( marginTop < minMarginTop ) {
+				marginTop = minMarginTop;
+			}
+			
+			$flyout.css('margin-top', marginTop + 'px');
 		}
 	}
 
