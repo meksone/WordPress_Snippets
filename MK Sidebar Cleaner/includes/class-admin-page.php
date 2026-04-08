@@ -191,17 +191,8 @@ class MK_Sidebar_Cleaner_Admin_Page {
 			$zone_items[ $target ][] = $item;
 		}
 
-		// Add custom groups as positionable items in the Main Sidebar zone.
-		foreach ( $custom_groups as $g ) {
-			$zone_items[''][] = [
-				'slug'            => $g['slug'],
-				'name'            => $g['name'],
-				'url'             => '',
-				'is_hidden'       => in_array( $g['slug'], $hidden, true ),
-				'custom_name'     => '',
-				'is_custom_group' => true,
-			];
-		}
+		// Nota: I gruppi custom non vengono più clonati come oggetti finti nella main sidebar.
+		// Ci si appoggia al semplice badge di posizione.
 
 		// Re-sort each zone's items by the saved order so the UI reflects the
 		// last-saved drag position rather than WP's natural menu position.
@@ -247,55 +238,75 @@ class MK_Sidebar_Cleaner_Admin_Page {
 			<input type="hidden" name="mk_scope"   value="<?= esc_attr( $scope ) ?>">
 			<input type="hidden" name="mksc_state" id="mksc-state-<?= esc_attr( $scope ) ?>" value="">
 
-			<div class="mksc-zones" id="mksc-zones-<?= esc_attr( $scope ) ?>">
-
-				<?php foreach ( self::BUILTIN_ZONES as $zone_target => $zone_meta ) : ?>
-				<div class="mksc-zone-col"
-				     data-zone-target="<?= esc_attr( $zone_target ) ?>">
-					<div class="mksc-zone-header">
-						<span class="dashicons <?= esc_attr( $zone_meta['icon'] ) ?>"></span>
-						<?= esc_html( $zone_meta['label'] ) ?>
+			<div class="mksc-layout-split">
+				
+				<!-- LEFT: Main Sidebar Pinned -->
+				<div class="mksc-main-board">
+					<div class="mksc-zone-col" data-zone-target="">
+						<div class="mksc-zone-header">
+							<span class="dashicons dashicons-menu"></span>
+							<?php esc_html_e( 'Main Sidebar', 'mk-sidebar-cleaner' ); ?>
+						</div>
+						<ul class="mksc-zone" data-target="">
+							<?php foreach ( $zone_items[''] as $item ) : ?>
+								<?php $this->render_item( $item ); ?>
+							<?php endforeach; ?>
+						</ul>
 					</div>
-					<ul class="mksc-zone" data-target="<?= esc_attr( $zone_target ) ?>">
-						<?php foreach ( $zone_items[ $zone_target ] as $item ) : ?>
-							<?php $this->render_item( $item ); ?>
-						<?php endforeach; ?>
-					</ul>
 				</div>
-				<?php endforeach; ?>
-
-				<?php foreach ( $custom_groups as $g ) : ?>
-				<div class="mksc-zone-col mksc-zone-col--custom"
-				     data-zone-target="<?= esc_attr( $g['slug'] ) ?>"
-				     data-custom-slug="<?= esc_attr( $g['slug'] ) ?>"
-				     data-custom-name="<?= esc_attr( $g['name'] ) ?>"
-				     data-custom-icon="<?= esc_attr( $g['icon'] ?? 'dashicons-category' ) ?>"
-				     data-custom-position="<?= esc_attr( (string) ( $g['position'] ?? 30 ) ) ?>">
-					<div class="mksc-zone-header">
-						<span class="dashicons <?= esc_attr( $g['icon'] ?? 'dashicons-category' ) ?>"></span>
-						<?= esc_html( $g['name'] ) ?>
-						<button type="button" class="mksc-btn-delete-zone" title="<?php esc_attr_e( 'Delete group', 'mk-sidebar-cleaner' ); ?>">✕</button>
+				
+				<!-- RIGHT: Scrolling destinations -->
+				<div class="mksc-scrolling-board">
+					<?php foreach ( self::BUILTIN_ZONES as $zone_target => $zone_meta ) : ?>
+					<?php if ( $zone_target === '' ) continue; // Già renderizzato a sx ?>
+					<div class="mksc-zone-col"
+					     data-zone-target="<?= esc_attr( $zone_target ) ?>">
+						<div class="mksc-zone-header">
+							<span class="dashicons <?= esc_attr( $zone_meta['icon'] ) ?>"></span>
+							<?= esc_html( $zone_meta['label'] ) ?>
+						</div>
+						<ul class="mksc-zone" data-target="<?= esc_attr( $zone_target ) ?>">
+							<?php foreach ( $zone_items[ $zone_target ] as $item ) : ?>
+								<?php $this->render_item( $item ); ?>
+							<?php endforeach; ?>
+						</ul>
 					</div>
-					<div class="mksc-zone-position">
-						<label><?php esc_html_e( 'Pos:', 'mk-sidebar-cleaner' ); ?></label>
-						<input type="number" class="mksc-position-input" min="0" max="200" step="1"
-						       value="<?= esc_attr( (string) ( $g['position'] ?? 30 ) ) ?>">
+					<?php endforeach; ?>
+
+					<?php foreach ( $custom_groups as $g ) : ?>
+					<div class="mksc-zone-col mksc-zone-col--custom"
+					     data-zone-target="<?= esc_attr( $g['slug'] ) ?>"
+					     data-custom-slug="<?= esc_attr( $g['slug'] ) ?>"
+					     data-custom-name="<?= esc_attr( $g['name'] ) ?>"
+					     data-custom-icon="<?= esc_attr( $g['icon'] ?? 'dashicons-category' ) ?>"
+					     data-custom-position="<?= esc_attr( (string) ( $g['position'] ?? 30 ) ) ?>">
+						<div class="mksc-zone-header">
+							<span class="dashicons <?= esc_attr( $g['icon'] ?? 'dashicons-category' ) ?>"></span>
+							<?= esc_html( $g['name'] ) ?>
+							<button type="button" class="mksc-btn-delete-zone" title="<?php esc_attr_e( 'Delete group', 'mk-sidebar-cleaner' ); ?>">✕</button>
+						</div>
+						<div class="mksc-zone-position">
+							<label><?php esc_html_e( 'Pos:', 'mk-sidebar-cleaner' ); ?></label>
+							<input type="number" class="mksc-position-input" min="0" max="200" step="1"
+							       value="<?= esc_attr( (string) ( $g['position'] ?? 30 ) ) ?>">
+						</div>
+						<ul class="mksc-zone" data-target="<?= esc_attr( $g['slug'] ) ?>">
+							<?php foreach ( $zone_items[ $g['slug'] ] as $item ) : ?>
+								<?php $this->render_item( $item ); ?>
+							<?php endforeach; ?>
+						</ul>
 					</div>
-					<ul class="mksc-zone" data-target="<?= esc_attr( $g['slug'] ) ?>">
-						<?php foreach ( $zone_items[ $g['slug'] ] as $item ) : ?>
-							<?php $this->render_item( $item ); ?>
-						<?php endforeach; ?>
-					</ul>
-				</div>
-				<?php endforeach; ?>
+					<?php endforeach; ?>
 
-				<div class="mksc-add-zone-wrap">
-					<button type="button" class="button mksc-btn-add-zone">
-						+ <?php esc_html_e( 'Add Group', 'mk-sidebar-cleaner' ); ?>
-					</button>
-				</div>
+					<div class="mksc-add-zone-wrap">
+						<button type="button" class="button mksc-btn-add-zone">
+							+ <?php esc_html_e( 'Add Group', 'mk-sidebar-cleaner' ); ?>
+						</button>
+					</div>
 
-			</div><!-- .mksc-zones -->
+				</div><!-- .mksc-scrolling-board -->
+
+			</div><!-- .mksc-layout-split -->
 
 			<div class="mksc-form-footer">
 				<button type="submit" class="button button-primary">
@@ -338,6 +349,7 @@ class MK_Sidebar_Cleaner_Admin_Page {
 				<?php else : ?>
 				<span class="mksc-toggle-spacer"></span>
 				<?php endif; ?>
+				<span class="mksc-item-pos-badge">[<?= esc_html( $item['pos'] ) ?>]</span>
 				<span class="mksc-item-name" title="<?php esc_attr_e( 'Double-click to rename', 'mk-sidebar-cleaner' ); ?>"><?= esc_html( $display_name ) ?></span>
 				<label class="mksc-hide-toggle" title="<?php esc_attr_e( 'Hide this item', 'mk-sidebar-cleaner' ); ?>">
 					<input type="checkbox" class="mksc-hide-cb"<?= $item['is_hidden'] ? ' checked' : '' ?>>

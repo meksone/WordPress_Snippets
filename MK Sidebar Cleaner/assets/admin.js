@@ -47,7 +47,7 @@ jQuery( function ( $ ) {
 	}
 
 	// Run on page load.
-	$( '.mksc-zones' ).each( function () {
+	$( '.mksc-layout-split' ).each( function () {
 		initZones( $( this ) );
 	} );
 
@@ -241,20 +241,10 @@ jQuery( function ( $ ) {
 		name = name.trim();
 
 		var slug       = 'mk-group-' + Date.now();
-		var $container = $( this ).closest( '.mksc-zones' );
+		var $container = $( this ).closest( '.mksc-layout-split' );
 		var position   = 30;
 
 		appendCustomZone( $container, slug, name, 'dashicons-category', position, [] );
-
-		// Also add the custom group as a positionable item in the Main Sidebar zone.
-		var $mainZone = $container.find( '.mksc-zone[data-target=""]' );
-		var $item = buildItemEl( {
-			slug:   slug,
-			name:   name,
-			hidden: false,
-			is_custom_group: true
-		} );
-		$mainZone.append( $item );
 	} );
 
 	function appendCustomZone( $container, slug, name, icon, position, items ) {
@@ -317,7 +307,7 @@ jQuery( function ( $ ) {
 		if ( ! confirm( i18n.deleteGroupConfirm || 'Delete this group? Items inside will return to the Main Sidebar.' ) ) return;
 
 		var $col       = $( this ).closest( '.mksc-zone-col' );
-		var $container = $col.closest( '.mksc-zones' );
+		var $container = $col.closest( '.mksc-layout-split' );
 		var $mainZone  = $container.find( '.mksc-zone[data-target=""]' );
 		var slug       = $col.data( 'custom-slug' );
 
@@ -325,9 +315,6 @@ jQuery( function ( $ ) {
 		$col.find( '.mksc-item' ).each( function () {
 			$mainZone.append( $( this ) );
 		} );
-
-		// Also remove the custom group's own entry from the Main Sidebar.
-		$mainZone.find( '.mksc-item[data-slug="' + slug + '"]' ).remove();
 
 		$col.find( '.mksc-zone' ).sortable( 'destroy' );
 		$col.remove();
@@ -343,7 +330,7 @@ jQuery( function ( $ ) {
 	$( document ).on( 'submit', '.mksc-form', function () {
 		var $form      = $( this );
 		var scope      = $form.find( 'input[name="mk_scope"]' ).val();
-		var $container = $form.find( '.mksc-zones' );
+		var $container = $form.find( '.mksc-layout-split' );
 
 		var state = {
 			hidden:        [],
