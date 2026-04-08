@@ -137,17 +137,6 @@ jQuery( function ( $ ) {
 	} );
 
 	// -----------------------------------------------------------------------
-	// Position input — sync data attribute on server-rendered zones
-	// -----------------------------------------------------------------------
-
-	$( document ).on( 'change input', '.mksc-position-input', function () {
-		var $col = $( this ).closest( '.mksc-zone-col' );
-		var val  = parseInt( $( this ).val(), 10 ) || 30;
-		$col.data( 'custom-position', val );
-		$col.attr( 'data-custom-position', val );
-	} );
-
-	// -----------------------------------------------------------------------
 	// Toggle hidden state
 	// -----------------------------------------------------------------------
 
@@ -242,22 +231,27 @@ jQuery( function ( $ ) {
 
 		var slug       = 'mk-group-' + Date.now();
 		var $container = $( this ).closest( '.mksc-layout-split' );
-		var position   = 30;
 
-		appendCustomZone( $container, slug, name, 'dashicons-category', position, [] );
+		appendCustomZone( $container, slug, name, 'dashicons-category', [] );
+
+		// Add a placeholder item for this group to the Main Sidebar so its
+		// vertical position can be set by drag order.
+		var $mainZone = $container.find( '.mksc-zone[data-target=""]' );
+		$mainZone.append( buildGroupPlaceholder( slug, name ) );
+		$container.find( '.mksc-zone' ).sortable( 'destroy' );
+		initZones( $container );
 	} );
 
-	function appendCustomZone( $container, slug, name, icon, position, items ) {
+	function appendCustomZone( $container, slug, name, icon, items ) {
 		var $addWrap = $container.find( '.mksc-add-zone-wrap' );
 
 		var $col = $( '<div>' )
 			.addClass( 'mksc-zone-col mksc-zone-col--custom' )
 			.attr( {
-				'data-zone-target':    slug,
-				'data-custom-slug':    slug,
-				'data-custom-name':    name,
-				'data-custom-icon':    icon,
-				'data-custom-position': position
+				'data-zone-target': slug,
+				'data-custom-slug': slug,
+				'data-custom-name': name,
+				'data-custom-icon': icon
 			} );
 
 		var $header = $( '<div>' ).addClass( 'mksc-zone-header' );
@@ -270,19 +264,6 @@ jQuery( function ( $ ) {
 				.html( '&#x2715;' )
 		);
 
-		var $posWrap = $( '<div>' ).addClass( 'mksc-zone-position' );
-		$posWrap.append( $( '<label>' ).text( 'Pos: ' ) );
-		$posWrap.append(
-			$( '<input>' )
-				.attr( { type: 'number', min: 0, max: 200, step: 1 } )
-				.addClass( 'mksc-position-input' )
-				.val( position )
-				.on( 'change input', function () {
-					$col.data( 'custom-position', parseInt( $( this ).val(), 10 ) || 30 );
-					$col.attr( 'data-custom-position', parseInt( $( this ).val(), 10 ) || 30 );
-				} )
-		);
-
 		var $list = $( '<ul>' )
 			.addClass( 'mksc-zone' )
 			.attr( 'data-target', slug );
@@ -291,12 +272,40 @@ jQuery( function ( $ ) {
 			$list.append( buildItemEl( item ) );
 		} );
 
-		$col.append( $header ).append( $posWrap ).append( $list );
+		$col.append( $header ).append( $list );
 		$addWrap.before( $col );
 
 		// Destroy and re-init sortable so the new zone is connected.
 		$container.find( '.mksc-zone' ).sortable( 'destroy' );
 		initZones( $container );
+	}
+
+	/**
+	 * Build a placeholder item for a custom group in the Main Sidebar.
+	 * It represents the group itself for drag-ordering purposes.
+	 */
+	function buildGroupPlaceholder( slug, name ) {
+		var $li = $( '<li>' )
+			.addClass( 'mksc-item mksc-item--custom-group' )
+			.attr( {
+				'data-slug':        slug,
+				'data-name':        name,
+				'data-custom-name': name
+			} );
+
+		var $row = $( '<div>' ).addClass( 'mksc-item-row' );
+		$row.append( $( '<span>' ).addClass( 'mksc-drag-handle' ).attr( 'title', 'Drag to move' ).html( '&#x2630;' ) );
+		$row.append( $( '<span>' ).addClass( 'mksc-toggle-spacer' ) );
+		$row.append( $( '<span>' ).addClass( 'mksc-item-pos-badge' ).text( '[grp]' ) );
+		$row.append( $( '<span>' ).addClass( 'mksc-item-name' ).attr( 'title', 'Double-click to rename' ).text( name ) );
+
+		var $label = $( '<label>' ).addClass( 'mksc-hide-toggle' ).attr( 'title', 'Hide this item' );
+		$label.append( $( '<input>' ).attr( { type: 'checkbox', class: 'mksc-hide-cb' } ) );
+		$label.append( $( '<span>' ).addClass( 'mksc-hide-icon' ).html( '&#x1F6AB;' ) );
+		$row.append( $label );
+
+		$li.append( $row );
+		return $li;
 	}
 
 	// -----------------------------------------------------------------------
@@ -315,6 +324,9 @@ jQuery( function ( $ ) {
 		$col.find( '.mksc-item' ).each( function () {
 			$mainZone.append( $( this ) );
 		} );
+
+		// Remove the group's placeholder from the Main Sidebar too.
+		$mainZone.find( '.mksc-item[data-slug="' + slug + '"]' ).remove();
 
 		$col.find( '.mksc-zone' ).sortable( 'destroy' );
 		$col.remove();
@@ -340,14 +352,13 @@ jQuery( function ( $ ) {
 			order:         {}   // zone_target → [slug, ...] in drag order
 		};
 
-		// Collect custom group metadata.
+		// Collect custom group metadata (position is now derived from Main Sidebar drag order).
 		$container.find( '.mksc-zone-col--custom' ).each( function () {
 			var $col = $( this );
 			state.custom_groups.push( {
-				slug:     $col.data( 'custom-slug' ),
-				name:     $col.data( 'custom-name' ),
-				icon:     $col.data( 'custom-icon' )     || 'dashicons-category',
-				position: parseInt( $col.data( 'custom-position' ), 10 ) || 30
+				slug: $col.data( 'custom-slug' ),
+				name: $col.data( 'custom-name' ),
+				icon: $col.data( 'custom-icon' ) || 'dashicons-category'
 			} );
 		} );
 

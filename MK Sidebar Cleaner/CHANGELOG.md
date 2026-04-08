@@ -1,5 +1,20 @@
 # Changelog — MK Sidebar Cleaner
 
+## [1.2.9] — 2026-04-08
+
+### Fixed
+- **Sidebar doesn't expand when clicking a folder in collapsed state**: the accordion click handler was calling `e.preventDefault()` + `e.stopPropagation()` unconditionally, blocking WP's native sidebar-expand mechanism when `body.folded` is active. The handler now returns early (letting WP handle the click normally) when the sidebar is collapsed; accordion open/close logic only runs when the sidebar is already expanded.
+
+## [1.2.8] — 2026-04-08
+
+### Changed
+- **Position via drag instead of numeric field**: custom group position in the real sidebar is now determined by dragging the group's placeholder item within the Main Sidebar zone, replacing the old numeric "Pos:" input. The rules engine maps the placeholder's drag-order index to a WP menu position at apply time.
+- **Main Sidebar placeholder for custom groups**: each custom group now has a dedicated draggable/hideable placeholder item in the Main Sidebar column. Deleting a group also removes its placeholder. This approach mirrors how WP's own separators work positionally.
+
+### Fixed
+- **CSS zone squashing**: zone columns now use `flex: 0 0 260px` + `min-width: 260px` to prevent horizontal compression when many groups are present.
+- **Scrollbar always visible**: `.mksc-scrolling-board` uses `overflow-x: scroll` (was `auto`) so the horizontal scrollbar is always rendered, making it obvious that more zones exist off-screen.
+
 ## [1.2.5] — 2026-04-08
 
 ### Fixed

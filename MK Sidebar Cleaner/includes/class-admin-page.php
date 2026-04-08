@@ -191,8 +191,21 @@ class MK_Sidebar_Cleaner_Admin_Page {
 			$zone_items[ $target ][] = $item;
 		}
 
-		// Nota: I gruppi custom non vengono più clonati come oggetti finti nella main sidebar.
-		// Ci si appoggia al semplice badge di posizione.
+		// Custom groups also appear as draggable placeholder items in the Main Sidebar
+		// so their vertical position relative to other items can be set by drag order.
+		$group_placeholders = [];
+		foreach ( $custom_groups as $g ) {
+			$group_placeholders[ $g['slug'] ] = [
+				'pos'             => 0,
+				'name'            => $g['name'],
+				'slug'            => $g['slug'],
+				'url'             => '',
+				'children'        => [],
+				'is_custom_group' => true,
+				'is_hidden'       => in_array( $g['slug'], $hidden, true ),
+				'custom_name'     => $g['name'],
+			];
+		}
 
 		// Re-sort each zone's items by the saved order so the UI reflects the
 		// last-saved drag position rather than WP's natural menu position.
@@ -208,6 +221,18 @@ class MK_Sidebar_Cleaner_Admin_Page {
 				return $ai <=> $bi;
 			} );
 		};
+
+		// Inject custom group placeholders into the Main Sidebar zone.
+		foreach ( $group_placeholders as $placeholder ) {
+			// Only add if not already present (prevents duplicates on re-render).
+			$already = false;
+			foreach ( $zone_items[''] as $existing ) {
+				if ( $existing['slug'] === $placeholder['slug'] ) { $already = true; break; }
+			}
+			if ( ! $already ) {
+				$zone_items[''][] = $placeholder;
+			}
+		}
 
 		// Main Sidebar zone (JS key '__main__' maps to zone target '').
 		$sort_zone( $zone_items[''], $saved_order['__main__'] ?? [] );
@@ -278,17 +303,11 @@ class MK_Sidebar_Cleaner_Admin_Page {
 					     data-zone-target="<?= esc_attr( $g['slug'] ) ?>"
 					     data-custom-slug="<?= esc_attr( $g['slug'] ) ?>"
 					     data-custom-name="<?= esc_attr( $g['name'] ) ?>"
-					     data-custom-icon="<?= esc_attr( $g['icon'] ?? 'dashicons-category' ) ?>"
-					     data-custom-position="<?= esc_attr( (string) ( $g['position'] ?? 30 ) ) ?>">
+					     data-custom-icon="<?= esc_attr( $g['icon'] ?? 'dashicons-category' ) ?>">
 						<div class="mksc-zone-header">
 							<span class="dashicons <?= esc_attr( $g['icon'] ?? 'dashicons-category' ) ?>"></span>
 							<?= esc_html( $g['name'] ) ?>
 							<button type="button" class="mksc-btn-delete-zone" title="<?php esc_attr_e( 'Delete group', 'mk-sidebar-cleaner' ); ?>">✕</button>
-						</div>
-						<div class="mksc-zone-position">
-							<label><?php esc_html_e( 'Pos:', 'mk-sidebar-cleaner' ); ?></label>
-							<input type="number" class="mksc-position-input" min="0" max="200" step="1"
-							       value="<?= esc_attr( (string) ( $g['position'] ?? 30 ) ) ?>">
 						</div>
 						<ul class="mksc-zone" data-target="<?= esc_attr( $g['slug'] ) ?>">
 							<?php foreach ( $zone_items[ $g['slug'] ] as $item ) : ?>

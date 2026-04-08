@@ -35,6 +35,20 @@ class MK_Sidebar_Cleaner_Rules_Engine {
 		$moved         = $cfg['moved']         ?? [];
 		$custom_groups = $cfg['custom_groups'] ?? [];
 
+		// Derive custom group positions from the Main Sidebar drag order so the
+		// placeholder-based positioning works without a numeric field.
+		$main_order = $cfg['order']['__main__'] ?? [];
+		if ( ! empty( $main_order ) ) {
+			foreach ( $custom_groups as &$g ) {
+				$idx = array_search( $g['slug'], $main_order, true );
+				if ( $idx !== false ) {
+					// Map index to a WP menu position range (10–200).
+					$g['position'] = 10 + (int) round( ( $idx / max( count( $main_order ) - 1, 1 ) ) * 190 );
+				}
+			}
+			unset( $g );
+		}
+
 		$this->register_custom_groups( $custom_groups );
 
 		$custom_slugs = array_column( $custom_groups, 'slug' );
@@ -522,6 +536,10 @@ jQuery( function( $ ) {
 
 	// Trigger al click delle cartelle custom
 	$( '#adminmenu' ).on( 'click', 'li.mksc-folder > a.menu-top', function( e ) {
+		// When the sidebar is collapsed (folded), let WP handle the click so
+		// the sidebar expands normally. Our accordion only runs when expanded.
+		if ( $( document.body ).hasClass( 'folded' ) ) return;
+
 		e.preventDefault();
 		e.stopPropagation();
 
