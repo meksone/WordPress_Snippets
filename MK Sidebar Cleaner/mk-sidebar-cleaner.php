@@ -2,14 +2,14 @@
 /**
  * Plugin Name: MK Sidebar Cleaner
  * Description: Tidy up the WP admin sidebar. Hide or relocate items, create custom groups. Superadmin bypass, per-admin personal config, global default.
- * Version:     1.2.6
+ * Version:     1.2.7
  * Author:      MK
  * Text Domain: mk-sidebar-cleaner
  */
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'MKSC_VERSION', '1.2.6' );
+define( 'MKSC_VERSION', '1.2.7' );
 define( 'MKSC_DIR',     plugin_dir_path( __FILE__ ) );
 define( 'MKSC_URL',     plugin_dir_url( __FILE__ ) );
 
