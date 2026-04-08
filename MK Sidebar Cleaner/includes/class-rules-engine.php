@@ -55,7 +55,7 @@ class MK_Sidebar_Cleaner_Rules_Engine {
 	// -------------------------------------------------------------------------
 
 	private function register_custom_groups( array $groups ): void {
-		global $menu;
+		global $menu, $submenu;
 		foreach ( $groups as $g ) {
 			add_menu_page(
 				$g['name'],
@@ -67,13 +67,18 @@ class MK_Sidebar_Cleaner_Rules_Engine {
 				$g['position'] ?? 30
 			);
 
+			// Rimuoviamo il subset array da sottomenu auto-generato da WP per non creare flyout vuoti
+			if ( isset( $submenu[ $g['slug'] ] ) ) {
+				unset( $submenu[ $g['slug'] ] );
+			}
+
 			// Add a specific class to our custom top-level menu items so JS can reliably target them
 			// and override native WP hover behavior.
 			if ( is_array( $menu ) ) {
 				foreach ( $menu as $pos => $item ) {
 					if ( ( $item[2] ?? '' ) === $g['slug'] ) {
-						// $item[4] is the class string in WP menu array
-						$menu[ $pos ][4] = trim( ( $item[4] ?? '' ) . ' mksc-custom-group-top' );
+						// mksc-folder is used by JS accordion
+						$menu[ $pos ][4] = trim( ( $item[4] ?? '' ) . ' mksc-folder mksc-folder-' . esc_attr($g['slug']) );
 						break;
 					}
 				}
@@ -98,6 +103,38 @@ class MK_Sidebar_Cleaner_Rules_Engine {
 			}
 			if ( $item_data === null ) continue; // plugin may not be active
 
+			$is_custom_target  = in_array( $target_slug, $custom_slugs, true );
+
+			// --- NUOVO APPROCCIO TOP-LEVEL ACCORDION ---
+			if ( $is_custom_target ) {
+				$folder_pos = false;
+				foreach ( $menu as $pos => $item ) {
+					if ( ( $item[2] ?? '' ) === $target_slug ) {
+						$folder_pos = $pos;
+						break;
+					}
+				}
+				
+				if ( $folder_pos !== false ) {
+					// Rimuove il plugin dalla sua posizione originaria
+					unset( $menu[ $item_pos ] );
+					
+					// Aggancia e marca il plugin come figlio
+					$item_data[4] = trim( ( $item_data[4] ?? '' ) . " mksc-child mksc-child-of-" . esc_attr($target_slug) );
+					
+					// Calcola lo slot decimale per mantenerlo fisicamente contiguo in $menu
+					$offset = 0.001;
+					$new_pos = (float)$folder_pos + $offset;
+					while ( isset( $menu[ (string)$new_pos ] ) ) {
+						$offset += 0.001;
+						$new_pos = (float)$folder_pos + $offset;
+					}
+					$menu[ (string)$new_pos ] = $item_data;
+				}
+				continue; // Finito! Questo non entra più in $submenu
+			}
+
+			// --- VECCHIO APPROCCIO (per built-in Targets es. Settings/Tools) ---
 			unset( $menu[ $item_pos ] );
 
 			if ( ! isset( $submenu[ $target_slug ] ) ) {
@@ -109,20 +146,7 @@ class MK_Sidebar_Cleaner_Rules_Engine {
 				? 100
 				: ( max( array_keys( $submenu[ $target_slug ] ) ) + 10 );
 
-			$is_custom_target  = in_array( $target_slug, $custom_slugs, true );
-			$has_own_submenus  = ! empty( $submenu[ $source_slug ] );
-
-			// Add the top-level item itself as a submenu entry (parent row).
-			// When inside a custom group AND it has children, mark it so JS can
-			// wire up the click-to-expand behaviour.
-			if ( $is_custom_target && $has_own_submenus ) {
-				$parent_label = '<span class="mksc-moved-parent" data-mksc-group="'
-					. esc_attr( $source_slug ) . '">'
-					. wp_strip_all_tags( $item_data[0] )
-					. '</span>';
-			} else {
-				$parent_label = wp_strip_all_tags( $item_data[0] );
-			}
+			$parent_label = wp_strip_all_tags( $item_data[0] );
 
 			$submenu[ $target_slug ][ $next ] = [
 				$parent_label,
@@ -131,18 +155,8 @@ class MK_Sidebar_Cleaner_Rules_Engine {
 			];
 			$next += 5;
 
-			// Add the moved item's own sub-items immediately after, visually indented.
-			// Custom group targets: wrap with mksc-nested-item so JS can collapse/expand.
-			// Built-in targets (Settings, Tools): wrap with mksc-flat-child — always
-			// visible, just indented. The collapsible JS only acts on [data-mksc-child]
-			// so flat children are never hidden.
-			// We do NOT unset $submenu[$source_slug] so WP can still resolve
-			// current-menu-item highlighting for those child pages.
+			// Built-in targets (Settings, Tools): wrap with mksc-flat-child
 			foreach ( (array) ( $submenu[ $source_slug ] ?? [] ) as $sub ) {
-				// Fix broken links: WP renders href='{slug}' (broken) when it can't find
-				// get_plugin_page_hook($slug, $new_parent) — because these pages were
-				// registered under a different parent. Replace bare plugin-page slugs with
-				// a canonical URL so WP uses it as-is without hook lookup.
 				$child_slug = $sub[2] ?? '';
 				if (
 					$child_slug !== ''
@@ -152,21 +166,13 @@ class MK_Sidebar_Cleaner_Rules_Engine {
 					$canonical = function_exists( 'menu_page_url' )
 						? menu_page_url( $child_slug, false )
 						: '';
-					// Canonical URL (absolute, contains 'http') → WP uses as-is.
-					// Fallback: relative 'admin.php?page=...' (contains '.php') → WP uses correctly.
 					$sub[2] = $canonical ?: ( 'admin.php?page=' . $child_slug );
 				}
 
-				if ( $is_custom_target ) {
-					$sub[0] = '<span class="mksc-nested-item" data-mksc-child="'
-						. esc_attr( $source_slug ) . '">'
-						. wp_strip_all_tags( $sub[0] )
-						. '</span>';
-				} else {
-					$sub[0] = '<span class="mksc-flat-child">'
-						. wp_strip_all_tags( $sub[0] )
-						. '</span>';
-				}
+				$sub[0] = '<span class="mksc-flat-child">'
+					. wp_strip_all_tags( $sub[0] )
+					. '</span>';
+					
 				$submenu[ $target_slug ][ $next ] = $sub;
 				$next += 5;
 			}
@@ -179,43 +185,61 @@ class MK_Sidebar_Cleaner_Rules_Engine {
 		// --- Top-level menu (Main Sidebar zone, stored under '__main__') ---
 		$main_order = $order['__main__'] ?? [];
 		if ( ! empty( $main_order ) && is_array( $menu ) ) {
-			// Separate WP separator entries (empty slug or 'separator*') from real items.
-			// Separators must stay at their original position keys; only real items
-			// get redistributed to avoid corrupting the menu structure.
 			$separator_entries = [];
 			$by_slug           = [];
 			$real_positions    = [];
+			$folder_children   = []; // New mapping per top-level accordion
 
 			foreach ( $menu as $pos => $item ) {
 				$slug = $item[2] ?? '';
 				if ( $slug === '' || str_starts_with( $slug, 'separator' ) ) {
 					$separator_entries[ $pos ] = $item;
 				} else {
-					$by_slug[ $slug ] = $item;
+					// Check it is a child belonging to a folder
+					if ( strpos( $item[4] ?? '', 'mksc-child-of-' ) !== false && preg_match('/mksc-child-of-([^\s]+)/', $item[4], $m) ) {
+						$folder_children[ $m[1] ][] = $item;
+					} else {
+						$by_slug[ $slug ] = $item;
+					}
+					// Add ALL real keys to reserve spatial integrity
 					$real_positions[] = $pos;
 				}
 			}
+			// Ordinal sorting maintains decimals safely
 			sort( $real_positions );
 			$pos_pool = $real_positions;
 
-			// Start with separators locked to their original positions.
 			$new_menu = $separator_entries;
 			$pool_idx = 0;
 
+			$inject_with_children = function( $slug, $item ) use ( &$new_menu, &$pool_idx, $pos_pool, $folder_children ) {
+				if ( $pool_idx < count( $pos_pool ) ) {
+					$new_menu[ (string) $pos_pool[ $pool_idx++ ] ] = $item;
+				}
+				if ( isset( $folder_children[ $slug ] ) ) {
+					foreach ( $folder_children[ $slug ] as $child_item ) {
+						if ( $pool_idx < count( $pos_pool ) ) {
+							$new_menu[ (string) $pos_pool[ $pool_idx++ ] ] = $child_item;
+						}
+					}
+				}
+			};
+
 			// First: items explicitly ordered by the user.
 			foreach ( $main_order as $slug ) {
-				if ( isset( $by_slug[ $slug ] ) && $pool_idx < count( $pos_pool ) ) {
-					$new_menu[ $pos_pool[ $pool_idx++ ] ] = $by_slug[ $slug ];
+				if ( isset( $by_slug[ $slug ] ) ) {
+					$inject_with_children( $slug, $by_slug[ $slug ] );
 					unset( $by_slug[ $slug ] );
 				}
 			}
-			// Then: any remaining items not in the order list (newly added plugins etc.).
-			foreach ( $by_slug as $item ) {
-				if ( $pool_idx < count( $pos_pool ) ) {
-					$new_menu[ $pos_pool[ $pool_idx++ ] ] = $item;
-				}
+			
+			// Then: any remaining items not in the order list.
+			foreach ( $by_slug as $slug => $item ) {
+				$inject_with_children( $slug, $item );
 			}
 
+			// We need ksort fallback since custom decimals might cause WP minor structural sorting glitches if skipped
+			ksort($new_menu, SORT_NUMERIC);
 			$menu = $new_menu;
 		}
 
