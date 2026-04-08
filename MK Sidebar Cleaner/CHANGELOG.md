@@ -1,0 +1,77 @@
+# Changelog — MK Sidebar Cleaner
+
+## [1.2.1] — 2026-04-08
+
+### Fixed
+- Added a blue info notice at the top of the settings page explaining that the sidebar rules are intentionally suspended while on this page, to avoid confusion when comparing the settings page sidebar with the rest of the admin.
+- Removed stale "who is not the superadmin" wording from the Default Config tab description.
+
+## [1.2.0] — 2026-04-08
+
+### Changed
+- **Superadmin bypass removed**: superadmin is now treated identically to any other admin (personal config → default config fallback). No special-case logic remains.
+- `OPTION_BYPASS`, `is_bypass_enabled()`, `set_bypass()`, `handle_toggle_bypass()` and all related UI removed.
+
+### Added
+- **Collapsible submenus in the real sidebar**: when a menu item with its own submenus is moved into a custom group, the item row becomes a click-to-expand toggle (▶/▼). Children are hidden by default; expanded state is persisted in `localStorage` per slug. This only applies to custom groups (not Settings/Tools moves), matching how click-based custom menus work.
+
+## [1.1.4] — 2026-04-08
+
+### Fixed
+- Bypass toggle form was placed inside `<h1>`, which is invalid HTML; browsers silently moved the `<form>` out of the heading, detaching the submit button so the POST never fired. Restructured into a `.mksc-page-header` flex wrapper that holds the `<h1>` and `<form>` as siblings.
+
+## [1.1.3] — 2026-04-08
+
+### Added
+- Superadmin bypass toggle: when logged in as the superadmin account, the page header now shows a pill button that switches between **Bypass** (full sidebar, no filtering) and **Apply** (settings are applied like any other user). State is stored as a site option (`mk_sidebar_cleaner_bypass`), defaults to bypass ON. Badge in the title updates accordingly (orange = bypass, blue = applied).
+
+## [1.1.2] — 2026-04-08
+
+### Added
+- Draggable items now show only top-level menu entries (submenus are no longer listed as separate draggable rows).
+- Each item with submenus shows a ▶ toggle button; clicking it expands/collapses the submenu list inline (read-only, informational).
+- Expanded/collapsed state is persisted per-slug in `localStorage` and restored on page load.
+
+## [1.1.1] — 2026-04-08
+
+### Fixed
+- Moved menu items no longer flatten their submenus as unrelated siblings. Sub-items are now placed immediately after the parent entry and visually indented with a `└` connector via a `<span class="mksc-nested-item">` wrapper + `admin_head` CSS. WP admin's 2-level limit means true nesting isn't possible natively; this approach preserves apparent hierarchy without patching core.
+
+## [1.1.0] — 2026-04-08
+
+### Added
+- **Inline rename**: double-click any sidebar item name to rename it in-place; the custom name is displayed in the real sidebar and persisted in config (`renamed` map).
+- **Group rename**: double-click a custom group header to rename the group inline.
+- **Group position control**: each custom group zone now shows a numeric "Pos:" input to set the sidebar position (0–200).
+- **Custom groups in Main Sidebar**: when a custom group is created, it also appears as a draggable/hideable item in the Main Sidebar zone, so its position relative to other items can be controlled.
+
+### Changed
+- Config schema extended with `renamed{}` (slug → custom display name).
+- Rules engine applies renames to `$menu` global at priority 999.
+- Item tooltip changed from URL to "Double-click to rename" hint; item name cursor changed to `text`.
+
+## [1.0.2] — 2026-04-08
+
+### Added
+- Menu item name now shows the full admin URL as a native browser tooltip on hover.
+
+## [1.0.1] — 2026-04-08
+
+### Added
+- **Move menu items**: top-level items can now be relocated under Settings, Tools, or a custom group; their own submenus follow as siblings under the new parent.
+- **Custom groups**: create new top-level sidebar groups as relocation targets; groups persist in config and are registered via `add_menu_page` at runtime.
+- **Drag-and-drop UI**: jQuery UI Sortable (WP-bundled) powers the zone-based interface — drag items between Main Sidebar, Settings, Tools, and custom groups.
+- **Tab layout**: Personal Config and Default Config are now separate tabs instead of side-by-side panels.
+
+### Changed
+- Plugin restructured into separate class files: `class-config.php`, `class-rules-engine.php`, `class-admin-page.php`.
+- Config schema extended: `hidden[]`, `moved{}`, `custom_groups[]`, `updated`.
+- Assets moved to `assets/admin.css` and `assets/admin.js` (enqueued via `wp_enqueue_*`, no more inline styles).
+- Rules engine now skips the settings page so the full unmodified menu is always visible while editing.
+- If a slug is both marked `hidden` and `moved`, the move takes precedence.
+
+## [1.0.0] — initial release
+
+- Hide menu items per-admin or globally via checkbox table.
+- Superadmin bypass (`fedcon-adm`).
+- Personal config (user meta) with fallback to global default (site option).
