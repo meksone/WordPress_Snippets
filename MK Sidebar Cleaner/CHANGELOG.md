@@ -1,5 +1,10 @@
 # Changelog — MK Sidebar Cleaner
 
+## [1.2.2] — 2026-04-08
+
+### Fixed
+- Drag-and-drop order was never saved or applied. The JS now serializes the slug order of every zone into `state.order` (keyed by zone target, `__main__` for the main sidebar). The rules engine applies this order: top-level `$menu` position keys are redistributed to match the dragged sequence; custom group `$submenu` entries are rebuilt in zone order, keeping each parent grouped with its children.
+
 ## [1.2.1] — 2026-04-08
 
 ### Fixed

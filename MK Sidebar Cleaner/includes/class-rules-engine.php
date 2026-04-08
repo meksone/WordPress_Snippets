@@ -49,6 +49,7 @@ class MK_Sidebar_Cleaner_Rules_Engine {
 			)
 		);
 		$this->apply_hides( $hidden );
+		$this->apply_order( $cfg['order'] ?? [], $custom_slugs );
 	}
 
 	// -------------------------------------------------------------------------
@@ -129,6 +130,85 @@ class MK_Sidebar_Cleaner_Rules_Engine {
 				$submenu[ $target_slug ][ $next ] = $sub;
 				$next += 5;
 			}
+		}
+	}
+
+	private function apply_order( array $order, array $custom_slugs ): void {
+		global $menu, $submenu;
+
+		// --- Top-level menu (Main Sidebar zone, stored under '__main__') ---
+		$main_order = $order['__main__'] ?? [];
+		if ( ! empty( $main_order ) && is_array( $menu ) ) {
+			// Build a lookup: slug → current menu entry.
+			$by_slug = [];
+			foreach ( $menu as $pos => $item ) {
+				$slug = $item[2] ?? '';
+				if ( $slug !== '' ) {
+					$by_slug[ $slug ] = $item;
+				}
+			}
+
+			// Collect the existing position keys so we can redistribute them
+			// in the same numeric range WP expects (keeps separators working).
+			$existing_positions = array_keys( $menu );
+			sort( $existing_positions );
+			$pos_pool = $existing_positions;
+
+			$new_menu = [];
+			$pool_idx = 0;
+
+			// First: items explicitly ordered by the user.
+			foreach ( $main_order as $slug ) {
+				if ( isset( $by_slug[ $slug ] ) && $pool_idx < count( $pos_pool ) ) {
+					$new_menu[ $pos_pool[ $pool_idx++ ] ] = $by_slug[ $slug ];
+					unset( $by_slug[ $slug ] );
+				}
+			}
+			// Then: any remaining items not in the order list (newly added plugins etc.).
+			foreach ( $by_slug as $item ) {
+				if ( $pool_idx < count( $pos_pool ) ) {
+					$new_menu[ $pos_pool[ $pool_idx++ ] ] = $item;
+				}
+			}
+
+			$menu = $new_menu;
+		}
+
+		// --- Custom group submenus ---
+		foreach ( $custom_slugs as $group_slug ) {
+			$zone_order = $order[ $group_slug ] ?? [];
+			if ( empty( $zone_order ) || empty( $submenu[ $group_slug ] ) ) continue;
+
+			// Build lookup: source_slug → list of submenu entries (parent + children).
+			// Entries whose slug matches a zone_order item are "parents";
+			// entries with data-mksc-child span are their children.
+			// Simplest approach: rebuild the submenu in zone_order sequence,
+			// grouping each parent with the children that immediately follow it.
+			$entries   = $submenu[ $group_slug ];
+			$groups    = []; // source_slug → [ parent_entry, child_entry, ... ]
+			$last_slug = null;
+			foreach ( $entries as $entry ) {
+				// Detect parent: its slug (index 2) matches a zone_order item.
+				$entry_slug = $entry[2] ?? '';
+				if ( in_array( $entry_slug, $zone_order, true ) ) {
+					$last_slug            = $entry_slug;
+					$groups[ $last_slug ] = [ $entry ];
+				} elseif ( $last_slug !== null ) {
+					$groups[ $last_slug ][] = $entry;
+				}
+			}
+
+			// Rebuild submenu in desired order.
+			$new_sub = [];
+			$next    = 100;
+			foreach ( $zone_order as $slug ) {
+				if ( ! isset( $groups[ $slug ] ) ) continue;
+				foreach ( $groups[ $slug ] as $entry ) {
+					$new_sub[ $next ] = $entry;
+					$next += 5;
+				}
+			}
+			$submenu[ $group_slug ] = $new_sub;
 		}
 	}
 

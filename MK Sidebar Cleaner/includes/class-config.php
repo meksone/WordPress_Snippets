@@ -99,11 +99,22 @@ class MK_Sidebar_Cleaner_Config {
 			$renamed[ sanitize_text_field( $slug ) ] = sanitize_text_field( $name );
 		}
 
+		// order: zone_target → ordered slug list.
+		// '__main__' is the JS key for the main sidebar (empty string target).
+		$order = [];
+		foreach ( (array) ( $raw['order'] ?? [] ) as $zone_key => $slugs ) {
+			$zone_key = sanitize_text_field( $zone_key );
+			$order[ $zone_key ] = array_values(
+				array_map( 'sanitize_text_field', (array) $slugs )
+			);
+		}
+
 		return [
 			'hidden'        => array_values( array_unique( $hidden ) ),
 			'moved'         => $moved,
 			'renamed'       => $renamed,
 			'custom_groups' => $custom_groups,
+			'order'         => $order,
 		];
 	}
 }

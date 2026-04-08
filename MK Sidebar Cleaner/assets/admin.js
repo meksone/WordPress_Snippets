@@ -310,7 +310,8 @@ jQuery( function ( $ ) {
 			hidden:        [],
 			moved:         {},
 			custom_groups: [],
-			renamed:       {}
+			renamed:       {},
+			order:         {}   // zone_target → [slug, ...] in drag order
 		};
 
 		// Collect custom group metadata.
@@ -324,14 +325,19 @@ jQuery( function ( $ ) {
 			} );
 		} );
 
-		// Collect item placement, hidden flags, and custom names.
+		// Collect item placement, order, hidden flags, and custom names.
 		$container.find( '.mksc-zone' ).each( function () {
 			var target = $( this ).data( 'target' ) || '';
+			var zoneKey = target === '' ? '__main__' : target;
+			state.order[ zoneKey ] = [];
 
 			$( this ).find( '.mksc-item' ).each( function () {
 				var $item  = $( this );
 				var slug   = $item.data( 'slug' );
 				var hidden = $item.find( '.mksc-hide-cb' ).is( ':checked' );
+
+				// Record slug order for this zone.
+				state.order[ zoneKey ].push( slug );
 
 				if ( hidden ) {
 					state.hidden.push( slug );
