@@ -1,9 +1,9 @@
 <?php
 /**
  * mk-create-admin.php
- * Drop in WordPress root. Activate via ?mk-create-admin=<password>
+ * Drop in WordPress root. Activate via https://site.com/mk-create-admin.php?mk-create-admin=<password>
  * Self-deletes after use.
- * Version: 1.0.0
+ * Version: 1.0.3
  */
 
 // ============================================================
@@ -11,7 +11,7 @@
 // ============================================================
 
 // Password hash — generate with: php -r "echo password_hash('yourpassword', PASSWORD_BCRYPT);"
-define('MK_PASSWORD_HASH', '$2y$10$.AcumRk1Bs/ODIT95XJuA.w.exCQ2O8sTdxWGvNMlezLKbZqgWcjq');
+define('MK_PASSWORD_HASH', '$2y$10$D8adhm1ha2uV5Fky0q8thO6hFjdZ5tQrewd1DxYnyzHZsEUg55WK2');
 
 // New admin user details
 define('MK_USER_LOGIN',    'mk-admin');
@@ -44,6 +44,7 @@ if (!password_verify($input, MK_PASSWORD_HASH)) {
 }
 
 // Auto-detect wp-load.php
+
 $wp_load = find_wp_load(__FILE__);
 if (!$wp_load) {
     die('ERROR: Could not locate wp-load.php');
