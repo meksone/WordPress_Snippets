@@ -14,7 +14,8 @@
                          deve essere raggiungibile pubblicamente (non serve CORS).
   - data-numbers="false" nasconde i numeri sulle tessere in modalità immagine
                          (default: true, i numeri restano come aiuto).
-  - data-win-message="..." messaggio mostrato alla vittoria; accetta {moves} e {time}
+  - data-win-message="..." messaggio mostrato alla vittoria; accetta {moves} (numero),
+                         {movesLabel} ("1 mossa" / "5 mosse") e {time}
                          (default: testo TEXTS.winPopup).
   - data-win-image="URL" immagine mostrata alla vittoria, sopra il messaggio.
   - data-win-delay="800" ms di attesa tra la vittoria e la comparsa del popup.
@@ -247,14 +248,24 @@
     board: 'Gioco del 15. Usa le frecce per spostare le tessere.',
     tile: 'Tessera {n}',
     movable: 'spostabile',
-    win: 'Hai vinto in {moves} mosse e {time}!',
-    winPopup: 'Complimenti! Hai vinto in {moves} mosse e {time}.',
+    movesOne: '{n} mossa',
+    movesMany: '{n} mosse',
+    win: 'Hai vinto in {movesLabel} e {time}!',
+    winPopup: 'Complimenti! Hai vinto in {movesLabel} e {time}.',
     close: 'Chiudi',
     started: 'Nuova partita iniziata.'
   };
 
   function fmt(str, vars) {
     return str.replace(/\{(\w+)\}/g, function (_, k) { return vars[k]; });
+  }
+  // variabili per i messaggi di vittoria; {movesLabel} gestisce singolare/plurale
+  function winVars(moves, seconds) {
+    return {
+      moves: moves,
+      movesLabel: fmt(moves === 1 ? TEXTS.movesOne : TEXTS.movesMany, { n: moves }),
+      time: formatTime(seconds)
+    };
   }
   function formatTime(s) {
     var m = Math.floor(s / 60), r = s % 60;
@@ -365,7 +376,7 @@
   Game.prototype.showWin = function () {
     var self = this;
     if (!this.winPopup) return;
-    this.winText.textContent = fmt(this.winMessage, { moves: this.moves, time: formatTime(this.seconds) });
+    this.winText.textContent = fmt(this.winMessage, winVars(this.moves, this.seconds));
     this.winShowTimer = setTimeout(function () {
       self.winShowTimer = null;
       self.winEl.classList.add('is-visible');
@@ -520,7 +531,7 @@
       this.won = true;
       this.stopTimer();
       this.root.classList.add('is-won');
-      var text = fmt(TEXTS.win, { moves: this.moves, time: formatTime(this.seconds) });
+      var text = fmt(TEXTS.win, winVars(this.moves, this.seconds));
       this.msg.textContent = text;
       this.live.textContent = text;
       this.showWin();
