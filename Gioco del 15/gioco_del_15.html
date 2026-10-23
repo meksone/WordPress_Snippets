@@ -14,6 +14,13 @@
                          deve essere raggiungibile pubblicamente (non serve CORS).
   - data-numbers="false" nasconde i numeri sulle tessere in modalità immagine
                          (default: true, i numeri restano come aiuto).
+  - data-win-message="..." messaggio mostrato alla vittoria; accetta {moves} e {time}
+                         (default: testo TEXTS.winPopup).
+  - data-win-image="URL" immagine mostrata alla vittoria, sopra il messaggio.
+  - data-win-delay="800" ms di attesa tra la vittoria e la comparsa del popup.
+  - data-win-duration="4000" ms di permanenza del popup, poi sparisce da solo;
+                         0 = resta finché non lo chiudi (pulsante, Esc o nuova partita).
+  - data-win-popup="false" disattiva il popup (resta il messaggio sotto la griglia).
   Colori e dimensioni: variabili CSS --mk15-* qui sotto (sovrascrivibili dal tema).
   Testi: oggetto TEXTS in cima allo script.
 
@@ -148,6 +155,49 @@
   }
   .mk15.is-previewing .mk15-preview { opacity: 1; }
 
+  /* Popup di vittoria: copre la griglia, compare e sparisce con dissolvenza */
+  .mk15-win {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 20px;
+    border-radius: var(--mk15-radius);
+    background: rgba(0, 0, 0, .78);
+    color: #fff;
+    text-align: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .4s ease, visibility 0s linear .4s;
+  }
+  .mk15-win.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity .4s ease;
+  }
+  .mk15-win-img {
+    max-width: 80%;
+    max-height: 55%;
+    object-fit: contain;
+    border-radius: var(--mk15-radius);
+  }
+  .mk15-win-text { margin: 0; font-size: clamp(18px, 5.5vw, 26px); font-weight: 700; line-height: 1.25; }
+  .mk15-win-close {
+    padding: 6px 16px;
+    border: 2px solid #fff;
+    border-radius: var(--mk15-radius);
+    background: transparent;
+    color: #fff;
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .mk15-win-close:focus-visible { outline: 3px solid var(--mk15-accent); outline-offset: 2px; }
+
   .mk15-actions { display: flex; gap: 8px; margin-top: 12px; }
   .mk15-btn {
     flex: 1;
@@ -177,7 +227,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .mk15-tile, .mk15-preview { transition: none; }
+    .mk15-tile, .mk15-preview, .mk15-win, .mk15-win.is-visible { transition: none; }
   }
 </style>
 
@@ -198,6 +248,8 @@
     tile: 'Tessera {n}',
     movable: 'spostabile',
     win: 'Hai vinto in {moves} mosse e {time}!',
+    winPopup: 'Complimenti! Hai vinto in {moves} mosse e {time}.',
+    close: 'Chiudi',
     started: 'Nuova partita iniziata.'
   };
 
@@ -207,6 +259,10 @@
   function formatTime(s) {
     var m = Math.floor(s / 60), r = s % 60;
     return (m < 10 ? '0' : '') + m + ':' + (r < 10 ? '0' : '') + r;
+  }
+  function readMs(value, fallback) {
+    var n = parseInt(value, 10);
+    return n >= 0 ? n : fallback;
   }
   function el(tag, cls, parent) {
     var n = document.createElement(tag);
@@ -220,6 +276,13 @@
     var imageUrl = (root.getAttribute('data-image') || '').trim();
     this.root = root;
     this.showNumbers = root.getAttribute('data-numbers') !== 'false';
+    this.winPopup = root.getAttribute('data-win-popup') !== 'false';
+    this.winMessage = root.getAttribute('data-win-message') || TEXTS.winPopup;
+    this.winImage = (root.getAttribute('data-win-image') || '').trim();
+    this.winDelay = readMs(root.getAttribute('data-win-delay'), 800);
+    this.winDuration = readMs(root.getAttribute('data-win-duration'), 4000);
+    this.winShowTimer = null;
+    this.winHideTimer = null;
     this.useImage = false;
     this.moves = 0;
     this.seconds = 0;
@@ -240,6 +303,7 @@
     this.board.setAttribute('role', 'group');
     this.board.setAttribute('aria-label', TEXTS.board);
     this.previewEl = el('div', 'mk15-preview', this.board);
+    this.buildWinPopup();
 
     var actions = el('div', 'mk15-actions', root);
     var newBtn = el('button', 'mk15-btn', actions);
@@ -277,6 +341,46 @@
     }
     this.start(true);
   }
+
+  Game.prototype.buildWinPopup = function () {
+    var self = this;
+    this.winEl = el('div', 'mk15-win', this.board);
+    this.winEl.setAttribute('role', 'status');
+    if (this.winImage) {
+      var img = el('img', 'mk15-win-img', this.winEl);
+      img.alt = '';
+      img.onerror = function () { img.style.display = 'none'; };
+      img.src = this.winImage;
+    }
+    this.winText = el('p', 'mk15-win-text', this.winEl);
+    var close = el('button', 'mk15-win-close', this.winEl);
+    close.type = 'button';
+    close.textContent = TEXTS.close;
+    close.addEventListener('click', function () { self.hideWin(); });
+    this.root.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') self.hideWin();
+    });
+  };
+
+  Game.prototype.showWin = function () {
+    var self = this;
+    if (!this.winPopup) return;
+    this.winText.textContent = fmt(this.winMessage, { moves: this.moves, time: formatTime(this.seconds) });
+    this.winShowTimer = setTimeout(function () {
+      self.winShowTimer = null;
+      self.winEl.classList.add('is-visible');
+      if (self.winDuration > 0) {
+        self.winHideTimer = setTimeout(function () { self.hideWin(); }, self.winDuration);
+      }
+    }, this.winDelay);
+  };
+
+  Game.prototype.hideWin = function () {
+    clearTimeout(this.winShowTimer);
+    clearTimeout(this.winHideTimer);
+    this.winShowTimer = this.winHideTimer = null;
+    this.winEl.classList.remove('is-visible');
+  };
 
   Game.prototype.buildTiles = function () {
     var self = this;
@@ -325,6 +429,7 @@
 
   Game.prototype.start = function (silent) {
     this.stopTimer();
+    this.hideWin();
     this.won = false;
     this.moves = 0;
     this.seconds = 0;
@@ -418,6 +523,7 @@
       var text = fmt(TEXTS.win, { moves: this.moves, time: formatTime(this.seconds) });
       this.msg.textContent = text;
       this.live.textContent = text;
+      this.showWin();
     }
     this.render();
     this.updateStats();
