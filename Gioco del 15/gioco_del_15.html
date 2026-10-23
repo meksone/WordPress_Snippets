@@ -1,0 +1,477 @@
+<!--
+  Gioco del 15 – snippet autonomo (HTML + CSS + JS vanilla, nessuna dipendenza)
+
+  USO
+  - Landing HTML: incolla il file così com'è nella pagina (o solo il blocco <style>,
+    i <div class="mk15"> e lo <script>).
+  - WordPress: incolla tutto in un blocco "HTML personalizzato" (o Elementor > HTML).
+  - Più istanze nella stessa pagina: basta ripetere il <div class="mk15">; <style> e
+    <script> vanno inclusi una volta sola.
+
+  PERSONALIZZAZIONE (attributi data-* sul <div class="mk15">)
+  - data-image="URL"     immagine del puzzle. Se omessa o non caricabile, il gioco
+                         usa le tessere numerate. Se l'immagine è su un altro dominio
+                         deve essere raggiungibile pubblicamente (non serve CORS).
+  - data-numbers="false" nasconde i numeri sulle tessere in modalità immagine
+                         (default: true, i numeri restano come aiuto).
+  Colori e dimensioni: variabili CSS --mk15-* qui sotto (sovrascrivibili dal tema).
+  Testi: oggetto TEXTS in cima allo script.
+
+  COMANDI: click/tap su una tessera (anche più tessere in fila), frecce da tastiera
+  con il focus sulla griglia (la freccia indica dove si muove la tessera), swipe.
+-->
+<style>
+  .mk15 {
+    --mk15-bg: #f4f1ea;
+    --mk15-board: #2b2b2b;
+    --mk15-tile: #e8b04a;
+    --mk15-tile-text: #1c1c1c;
+    --mk15-accent: #c4452d;
+    --mk15-text: #1c1c1c;
+    --mk15-gap: 4px;
+    --mk15-radius: 8px;
+    --mk15-max-width: 420px;
+
+    box-sizing: border-box;
+    max-width: var(--mk15-max-width);
+    margin: 0 auto;
+    padding: 16px;
+    background: var(--mk15-bg);
+    color: var(--mk15-text);
+    border-radius: calc(var(--mk15-radius) * 2);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    .mk15 {
+      --mk15-bg: #1f1f1f;
+      --mk15-board: #0f0f0f;
+      --mk15-tile: #d09a36;
+      --mk15-text: #f1f1f1;
+    }
+  }
+  .mk15 *, .mk15 *::before, .mk15 *::after { box-sizing: border-box; }
+
+  .mk15-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-variant-numeric: tabular-nums;
+    font-size: 15px;
+  }
+  .mk15-stats { display: flex; gap: 16px; }
+  .mk15-stats strong { font-weight: 700; }
+
+  .mk15-board {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: var(--mk15-board);
+    border-radius: var(--mk15-radius);
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .mk15-board:focus-visible { outline: 3px solid var(--mk15-accent); outline-offset: 3px; }
+
+  .mk15-tile {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 25%;
+    height: 25%;
+    padding: var(--mk15-gap);
+    margin: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    transition: transform .18s ease, opacity .4s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mk15-face {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: calc(var(--mk15-radius) - 2px);
+    background: var(--mk15-tile);
+    color: var(--mk15-tile-text);
+    font-size: clamp(20px, 7vw, 34px);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* Modalità immagine: il livello immagine è grande quanto l'intera griglia
+     e viene traslato in modo da mostrare la porzione di competenza della tessera. */
+  .mk15-img {
+    position: absolute;
+    /* 4 caselle intere (faccia + 2 spazi per casella) = intera griglia */
+    width: calc(400% + 8 * var(--mk15-gap));
+    height: calc(400% + 8 * var(--mk15-gap));
+    background-size: cover;
+    background-position: center;
+  }
+  .mk15-num { position: relative; }
+  .mk15.is-image .mk15-num {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    min-width: 1.5em;
+    padding: 1px 5px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, .55);
+    color: #fff;
+    font-size: 13px;
+    line-height: 1.4;
+    text-align: center;
+  }
+  .mk15-tile:focus-visible .mk15-face { outline: 3px solid var(--mk15-accent); outline-offset: -3px; }
+  .mk15-tile:hover .mk15-face { filter: brightness(1.08); }
+
+  /* ultimo pezzo dell'immagine: compare a partita vinta */
+  .mk15-tile.is-last { opacity: 0; pointer-events: none; }
+  .mk15-tile.is-last .mk15-num { display: none !important; }
+  .mk15.is-won.is-image .mk15-tile.is-last { opacity: 1; }
+
+  .mk15-preview {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--mk15-radius);
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease;
+  }
+  .mk15.is-previewing .mk15-preview { opacity: 1; }
+
+  .mk15-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .mk15-btn {
+    flex: 1;
+    padding: 10px 14px;
+    border: 2px solid var(--mk15-accent);
+    border-radius: var(--mk15-radius);
+    background: var(--mk15-accent);
+    color: #fff;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .mk15-btn.is-secondary { background: transparent; color: var(--mk15-accent); }
+  .mk15-btn:focus-visible { outline: 3px solid var(--mk15-text); outline-offset: 2px; }
+  .mk15-btn[hidden] { display: none; }
+
+  .mk15-msg { min-height: 1.5em; margin: 12px 0 0; text-align: center; font-weight: 600; }
+  .mk15.is-won .mk15-msg { color: var(--mk15-accent); }
+
+  .mk15-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mk15-tile, .mk15-preview { transition: none; }
+  }
+</style>
+
+<!-- Aggiungi data-image="https://esempio.it/immagine.jpg" per il puzzle a immagine -->
+<div class="mk15" data-image="" data-numbers="true"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var SIZE = 4;
+  var TEXTS = {
+    moves: 'Mosse',
+    time: 'Tempo',
+    newGame: 'Nuova partita',
+    preview: 'Anteprima',
+    board: 'Gioco del 15. Usa le frecce per spostare le tessere.',
+    tile: 'Tessera {n}',
+    movable: 'spostabile',
+    win: 'Hai vinto in {moves} mosse e {time}!',
+    started: 'Nuova partita iniziata.'
+  };
+
+  function fmt(str, vars) {
+    return str.replace(/\{(\w+)\}/g, function (_, k) { return vars[k]; });
+  }
+  function formatTime(s) {
+    var m = Math.floor(s / 60), r = s % 60;
+    return (m < 10 ? '0' : '') + m + ':' + (r < 10 ? '0' : '') + r;
+  }
+  function el(tag, cls, parent) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+
+  function Game(root) {
+    var self = this;
+    var imageUrl = (root.getAttribute('data-image') || '').trim();
+    this.root = root;
+    this.showNumbers = root.getAttribute('data-numbers') !== 'false';
+    this.useImage = false;
+    this.moves = 0;
+    this.seconds = 0;
+    this.timer = null;
+    this.won = false;
+    // grid[pos] = numero tessera (1..15) oppure 0 per la casella vuota; pos = r * SIZE + c
+    this.grid = [];
+    this.tiles = {};
+
+    root.innerHTML = '';
+    var bar = el('div', 'mk15-bar', root);
+    var stats = el('div', 'mk15-stats', bar);
+    this.movesEl = el('span', '', stats);
+    this.timeEl = el('span', '', stats);
+
+    this.board = el('div', 'mk15-board', root);
+    this.board.tabIndex = 0;
+    this.board.setAttribute('role', 'group');
+    this.board.setAttribute('aria-label', TEXTS.board);
+    this.previewEl = el('div', 'mk15-preview', this.board);
+
+    var actions = el('div', 'mk15-actions', root);
+    var newBtn = el('button', 'mk15-btn', actions);
+    newBtn.type = 'button';
+    newBtn.textContent = TEXTS.newGame;
+    this.previewBtn = el('button', 'mk15-btn is-secondary', actions);
+    this.previewBtn.type = 'button';
+    this.previewBtn.textContent = TEXTS.preview;
+    this.previewBtn.hidden = true;
+
+    this.msg = el('p', 'mk15-msg', root);
+    this.live = el('div', 'mk15-sr', root);
+    this.live.setAttribute('aria-live', 'polite');
+
+    newBtn.addEventListener('click', function () { self.start(); });
+    var showPrev = function (on) { root.classList.toggle('is-previewing', on); };
+    this.previewBtn.addEventListener('pointerdown', function () { showPrev(true); });
+    ['pointerup', 'pointerleave', 'pointercancel', 'blur'].forEach(function (ev) {
+      self.previewBtn.addEventListener(ev, function () { showPrev(false); });
+    });
+    this.previewBtn.addEventListener('keydown', function (e) {
+      if (e.key === ' ' || e.key === 'Enter') { showPrev(true); }
+    });
+    this.previewBtn.addEventListener('keyup', function () { showPrev(false); });
+
+    this.board.addEventListener('keydown', function (e) { self.onKey(e); });
+    this.bindSwipe();
+
+    this.buildTiles();
+    if (imageUrl) {
+      var probe = new Image();
+      probe.onload = function () { self.enableImage(imageUrl); };
+      probe.onerror = function () { /* fallback: tessere numerate */ };
+      probe.src = imageUrl;
+    }
+    this.start(true);
+  }
+
+  Game.prototype.buildTiles = function () {
+    var self = this;
+    for (var n = 1; n <= SIZE * SIZE; n++) {
+      (function (n) {
+        var home = n - 1;
+        var tile = el('button', 'mk15-tile', self.board);
+        tile.type = 'button';
+        var face = el('span', 'mk15-face', tile);
+        var img = el('span', 'mk15-img', face);
+        img.style.display = 'none';
+        var hc = home % SIZE, hr = Math.floor(home / SIZE);
+        img.style.left = 'calc(' + (-hc * 100) + '% - ' + (2 * hc + 1) + ' * var(--mk15-gap))';
+        img.style.top = 'calc(' + (-hr * 100) + '% - ' + (2 * hr + 1) + ' * var(--mk15-gap))';
+        var num = el('span', 'mk15-num', face);
+        num.textContent = n;
+        if (n === SIZE * SIZE) {
+          tile.className += ' is-last';
+          tile.tabIndex = -1;
+          tile.setAttribute('aria-hidden', 'true');
+          num.textContent = '';
+          tile.style.transform = 'translate(' + ((SIZE - 1) * 100) + '%,' + ((SIZE - 1) * 100) + '%)';
+        } else {
+          tile.addEventListener('click', function () { self.moveTile(n); });
+        }
+        self.tiles[n] = { btn: tile, img: img, num: num };
+      })(n);
+    }
+  };
+
+  Game.prototype.enableImage = function (url) {
+    this.useImage = true;
+    var css = 'url("' + url.replace(/"/g, '%22') + '")';
+    for (var n in this.tiles) {
+      var t = this.tiles[n];
+      t.img.style.backgroundImage = css;
+      t.img.style.display = 'block';
+      t.btn.firstChild.style.background = 'none';
+      t.num.style.display = this.showNumbers ? '' : 'none';
+    }
+    this.root.classList.add('is-image');
+    this.previewEl.style.backgroundImage = css;
+    this.previewBtn.hidden = false;
+    this.render();
+  };
+
+  Game.prototype.start = function (silent) {
+    this.stopTimer();
+    this.won = false;
+    this.moves = 0;
+    this.seconds = 0;
+    this.root.classList.remove('is-won', 'is-previewing');
+    this.msg.textContent = '';
+
+    // Parte dallo stato risolto e applica mosse valide casuali: è sempre risolvibile.
+    var grid = [];
+    for (var i = 0; i < SIZE * SIZE - 1; i++) grid.push(i + 1);
+    grid.push(0);
+    this.grid = grid;
+    var prev = -1;
+    for (var k = 0; k < 300 || this.isSolved(); k++) {
+      var e = this.grid.indexOf(0);
+      var opts = this.neighbours(e).filter(function (p) { return p !== prev; });
+      var pick = opts[Math.floor(Math.random() * opts.length)];
+      this.grid[e] = this.grid[pick];
+      this.grid[pick] = 0;
+      prev = e;
+    }
+    this.render();
+    this.updateStats();
+    if (!silent) this.live.textContent = TEXTS.started;
+  };
+
+  Game.prototype.neighbours = function (pos) {
+    var r = Math.floor(pos / SIZE), c = pos % SIZE, out = [];
+    if (r > 0) out.push(pos - SIZE);
+    if (r < SIZE - 1) out.push(pos + SIZE);
+    if (c > 0) out.push(pos - 1);
+    if (c < SIZE - 1) out.push(pos + 1);
+    return out;
+  };
+
+  Game.prototype.isSolved = function () {
+    for (var i = 0; i < SIZE * SIZE - 1; i++) if (this.grid[i] !== i + 1) return false;
+    return true;
+  };
+
+  Game.prototype.render = function () {
+    var empty = this.grid.indexOf(0);
+    var er = Math.floor(empty / SIZE), ec = empty % SIZE;
+    for (var pos = 0; pos < this.grid.length; pos++) {
+      var n = this.grid[pos];
+      if (!n) continue;
+      var t = this.tiles[n];
+      var r = Math.floor(pos / SIZE), c = pos % SIZE;
+      t.btn.style.transform = 'translate(' + (c * 100) + '%,' + (r * 100) + '%)';
+      var movable = !this.won && (r === er || c === ec);
+      var label = fmt(TEXTS.tile, { n: n }) + (movable ? ', ' + TEXTS.movable : '');
+      t.btn.setAttribute('aria-label', label);
+      t.btn.tabIndex = movable ? 0 : -1;
+      t.btn.disabled = this.won;
+    }
+  };
+
+  Game.prototype.moveTile = function (n) {
+    if (this.won) return;
+    var pos = this.grid.indexOf(n), empty = this.grid.indexOf(0);
+    var r = Math.floor(pos / SIZE), c = pos % SIZE;
+    var er = Math.floor(empty / SIZE), ec = empty % SIZE;
+    if (r !== er && c !== ec) return;
+    var step = r === er ? (pos > empty ? 1 : -1) : (pos > empty ? SIZE : -SIZE);
+    // sposta in fila tutte le tessere tra la casella vuota e quella cliccata
+    var cur = empty;
+    while (cur !== pos) {
+      var from = cur + step;
+      this.grid[cur] = this.grid[from];
+      cur = from;
+    }
+    this.grid[pos] = 0;
+    this.afterMove();
+  };
+
+  // direzione: la tessera si sposta nel verso indicato (dx = verso destra, ecc.)
+  Game.prototype.moveDir = function (dx, dy) {
+    var empty = this.grid.indexOf(0);
+    var er = Math.floor(empty / SIZE), ec = empty % SIZE;
+    var r = er - dy, c = ec - dx;
+    if (r < 0 || r >= SIZE || c < 0 || c >= SIZE) return;
+    this.moveTile(this.grid[r * SIZE + c]);
+  };
+
+  Game.prototype.afterMove = function () {
+    this.moves++;
+    if (!this.timer) this.startTimer();
+    if (this.isSolved()) {
+      this.won = true;
+      this.stopTimer();
+      this.root.classList.add('is-won');
+      var text = fmt(TEXTS.win, { moves: this.moves, time: formatTime(this.seconds) });
+      this.msg.textContent = text;
+      this.live.textContent = text;
+    }
+    this.render();
+    this.updateStats();
+  };
+
+  Game.prototype.startTimer = function () {
+    var self = this;
+    this.timer = setInterval(function () { self.seconds++; self.updateStats(); }, 1000);
+  };
+  Game.prototype.stopTimer = function () {
+    if (this.timer) { clearInterval(this.timer); this.timer = null; }
+  };
+  Game.prototype.updateStats = function () {
+    this.movesEl.innerHTML = TEXTS.moves + ': <strong>' + this.moves + '</strong>';
+    this.timeEl.innerHTML = TEXTS.time + ': <strong>' + formatTime(this.seconds) + '</strong>';
+  };
+
+  Game.prototype.onKey = function (e) {
+    var map = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+    var d = map[e.key];
+    if (!d) return;
+    e.preventDefault();
+    this.moveDir(d[0], d[1]);
+  };
+
+  Game.prototype.bindSwipe = function () {
+    var self = this, sx = 0, sy = 0, active = false;
+    this.board.addEventListener('pointerdown', function (e) {
+      active = true; sx = e.clientX; sy = e.clientY;
+    });
+    this.board.addEventListener('pointerup', function (e) {
+      if (!active) return;
+      active = false;
+      var dx = e.clientX - sx, dy = e.clientY - sy;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 30) return; // è un tap, gestito dal click
+      self.swiped = true;
+      setTimeout(function () { self.swiped = false; }, 0);
+      if (Math.abs(dx) > Math.abs(dy)) self.moveDir(dx > 0 ? 1 : -1, 0);
+      else self.moveDir(0, dy > 0 ? 1 : -1);
+    });
+    this.board.addEventListener('pointercancel', function () { active = false; });
+    // se è stato uno swipe, annulla il click generato sulla tessera di partenza
+    this.board.addEventListener('click', function (e) {
+      if (self.swiped) { e.stopPropagation(); e.preventDefault(); }
+    }, true);
+  };
+
+  function init() {
+    var nodes = document.querySelectorAll('.mk15');
+    for (var i = 0; i < nodes.length; i++) {
+      if (!nodes[i].__mk15) nodes[i].__mk15 = new Game(nodes[i]);
+    }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
